@@ -1,0 +1,147 @@
+<div class="sale-list">
+  <div class="page-header">
+    <div>
+      <h1>Ventas</h1>
+      <p>Gestión de ventas del sistema</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/sales/new">
+      ➕ Nueva Venta
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters">
+      <div class="search-box">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterSales()"
+          placeholder="🔍 Buscar por número o cliente..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="filterSales()" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option [value]="SaleStatus.PENDING">Pendiente</option>
+          <option [value]="SaleStatus.COMPLETED">Completada</option>
+          <option [value]="SaleStatus.CANCELLED">Cancelada</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Subtotal</th>
+            <th>Impuesto</th>
+            <th>Total</th>
+            <th>Pagado</th>
+            <th>Saldo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sale of filteredSales">
+            <td>
+              <strong>{{ sale.saleNumber }}</strong>
+            </td>
+            <td>{{ sale.customer?.businessName || '-' }}</td>
+            <td>{{ sale.saleDate | dateFormat }}</td>
+            <td>{{ sale.subtotal | customCurrency }}</td>
+            <td>{{ sale.tax | customCurrency }}</td>
+            <td><strong>{{ sale.total | customCurrency }}</strong></td>
+            <td>{{ sale.paidAmount | customCurrency }}</td>
+            <td>
+              <span [class.text-danger]="sale.balance > 0">
+                {{ sale.balance | customCurrency }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(sale.status)">
+                {{ getStatusLabel(sale.status) }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-info"
+                  [routerLink]="['/sales/detail', sale.id]"
+                  title="Ver Detalle"
+                >
+                  👁️
+                </button>
+                <button
+                  *ngIf="sale.status === SaleStatus.PENDING"
+                  class="btn-icon btn-primary"
+                  [routerLink]="['/sales/edit', sale.id]"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  *ngIf="sale.status === SaleStatus.PENDING"
+                  class="btn-icon btn-success"
+                  (click)="completeSale(sale)"
+                  title="Completar"
+                >
+                  ✓
+                </button>
+                <button
+                  *ngIf="sale.status === SaleStatus.PENDING"
+                  class="btn-icon btn-warning"
+                  (click)="confirmCancel(sale)"
+                  title="Cancelar Venta"
+                >
+                  ✕
+                </button>
+                <button
+                  class="btn-icon btn-danger"
+                  (click)="confirmDelete(sale)"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredSales.length === 0">
+            <td colspan="10" class="text-center">
+              <div class="empty-state">
+                <p>💰 No hay ventas para mostrar</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [show]="showDeleteDialog"
+  [title]="'Eliminar Venta'"
+  [message]="'¿Estás seguro de eliminar la venta ' + saleToDelete?.saleNumber + '?'"
+  [confirmText]="'Eliminar'"
+  [cancelText]="'Cancelar'"
+  (confirmed)="deleteSale()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>
+
+<app-confirm-dialog
+  [show]="showCancelDialog"
+  [title]="'Cancelar Venta'"
+  [message]="'¿Estás seguro de cancelar la venta ' + saleToCancel?.saleNumber + '?'"
+  [confirmText]="'Cancelar Venta'"
+  [cancelText]="'No'"
+  (confirmed)="cancelSale()"
+  (cancelled)="cancelCancelDialog()"
+></app-confirm-dialog>

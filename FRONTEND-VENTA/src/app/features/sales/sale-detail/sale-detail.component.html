@@ -1,0 +1,124 @@
+<div class="sale-detail" *ngIf="sale">
+  <div class="page-header">
+    <div>
+      <h1>Detalle de Venta</h1>
+      <p>Información completa de la venta {{ sale.saleNumber }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" routerLink="/sales">
+        ← Volver
+      </button>
+      <button class="btn btn-info" (click)="printSale()">
+        🖨️ Imprimir
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="info-card">
+      <h3>Información General</h3>
+      <div class="info-row">
+        <span class="label">Número:</span>
+        <strong>{{ sale.saleNumber }}</strong>
+      </div>
+      <div class="info-row">
+        <span class="label">Cliente:</span>
+        <strong>{{ sale.customer?.businessName }}</strong>
+      </div>
+      <div class="info-row">
+        <span class="label">Documento:</span>
+        <span>{{ sale.customer?.documentNumber }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Fecha:</span>
+        <span>{{ sale.saleDate | dateFormat }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Estado:</span>
+        <span class="badge" [ngClass]="getStatusClass(sale.status)">
+          {{ getStatusLabel(sale.status) }}
+        </span>
+      </div>
+      <div class="info-row" *ngIf="sale.paymentMethod">
+        <span class="label">Método de Pago:</span>
+        <span>{{ sale.paymentMethod }}</span>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3>Resumen Financiero</h3>
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <strong>{{ sale.subtotal | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Impuesto:</span>
+        <strong>{{ sale.tax | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Descuento:</span>
+        <strong>-{{ sale.discount | customCurrency }}</strong>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-row total">
+        <span>TOTAL:</span>
+        <strong>{{ sale.total | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Pagado:</span>
+        <strong class="text-success">{{ sale.paidAmount | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Saldo:</span>
+        <strong class="text-danger">{{ sale.balance | customCurrency }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="details-card">
+    <h3>Productos</h3>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+            <th>Descuento</th>
+            <th>Subtotal</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of sale.details">
+            <td>
+              <div class="product-info">
+                <strong>{{ detail.product?.name }}</strong>
+                <small>{{ detail.product?.code }}</small>
+              </div>
+            </td>
+            <td>{{ detail.quantity }}</td>
+            <td>{{ detail.unitPrice | customCurrency }}</td>
+            <td>{{ detail.discountPercent }}%</td>
+            <td>{{ detail.subtotal | customCurrency }}</td>
+            <td><strong>{{ detail.total | customCurrency }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="notes-card" *ngIf="sale.notes">
+    <h3>Notas</h3>
+    <p>{{ sale.notes }}</p>
+  </div>
+
+  <div class="actions-card" *ngIf="sale.status === SaleStatus.PENDING">
+    <button class="btn btn-success" (click)="completeSale()">
+      ✓ Completar Venta
+    </button>
+    <button class="btn btn-danger" (click)="cancelSale()">
+      ✕ Cancelar Venta
+    </button>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+.login-card {
+  h2 {
+    font-size: 24px;
+    font-weight: 400;
+    margin: 0 0 8px 0;
+    color: #333;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 0 0 30px 0;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 400;
+    color: #333;
+    font-size: 14px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    &.error {
+      border-color: #dc3545;
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+
+    span {
+      display: block;
+    }
+  }
+}
+
+.password-input {
+  position: relative;
+
+  input {
+    padding-right: 17px;
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
+
+.btn-block {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 10px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: pointer;
+  }
+}

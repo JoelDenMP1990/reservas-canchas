@@ -1,0 +1,103 @@
+<div class="customer-list">
+  <div class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Gestión de clientes del sistema</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/customers/new">
+      ➕ Nuevo Cliente
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterCustomers()"
+        placeholder="🔍 Buscar por nombre, documento, email o teléfono..."
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tipo Doc.</th>
+            <th>Documento</th>
+            <th>Razón Social</th>
+            <th>Contacto</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Ciudad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of filteredCustomers">
+            <td>{{ customer.documentType }}</td>
+            <td><strong>{{ customer.documentNumber }}</strong></td>
+            <td>{{ customer.businessName }}</td>
+            <td>{{ customer.contactName || '-' }}</td>
+            <td>{{ customer.email || '-' }}</td>
+            <td>{{ customer.phone || '-' }}</td>
+            <td>{{ customer.city || '-' }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="customer.isActive" [class.badge-danger]="!customer.isActive">
+                {{ customer.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-primary"
+                  [routerLink]="['/customers/edit', customer.id]"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  class="btn-icon"
+                  [class.btn-warning]="customer.isActive"
+                  [class.btn-success]="!customer.isActive"
+                  (click)="toggleActive(customer)"
+                  [title]="customer.isActive ? 'Desactivar' : 'Activar'"
+                >
+                  {{ customer.isActive ? '⏸️' : '▶️' }}
+                </button>
+                <button
+                  class="btn-icon btn-danger"
+                  (click)="confirmDelete(customer)"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredCustomers.length === 0">
+            <td colspan="9" class="text-center">
+              <div class="empty-state">
+                <p>👥 No hay clientes para mostrar</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [show]="showDeleteDialog"
+  [title]="'Eliminar Cliente'"
+  [message]="'¿Estás seguro de eliminar el cliente ' + customerToDelete?.businessName + '?'"
+  [confirmText]="'Eliminar'"
+  [cancelText]="'Cancelar'"
+  (confirmed)="deleteCustomer()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>

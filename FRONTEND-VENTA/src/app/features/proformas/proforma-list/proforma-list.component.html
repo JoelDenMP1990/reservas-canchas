@@ -1,0 +1,72 @@
+<div class="proforma-list">
+  <div class="page-header">
+    <div>
+      <h1>Proformas</h1>
+      <p>Gestión de proformas del sistema</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/proformas/new">
+      ➕ Nueva Proforma
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters">
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterProformas()" placeholder="🔍 Buscar..." class="search-input" />
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="filterProformas()" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option [value]="ProformaStatus.DRAFT">Borrador</option>
+          <option [value]="ProformaStatus.SENT">Enviada</option>
+          <option [value]="ProformaStatus.APPROVED">Aprobada</option>
+          <option [value]="ProformaStatus.REJECTED">Rechazada</option>
+          <option [value]="ProformaStatus.CONVERTED">Convertida</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Fecha Emisión</th>
+            <th>Válida Hasta</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let proforma of filteredProformas">
+            <td><strong>{{ proforma.proformaNumber }}</strong></td>
+            <td>{{ proforma.customer?.businessName || '-' }}</td>
+            <td>{{ proforma.issueDate | dateFormat }}</td>
+            <td>{{ proforma.validUntil | dateFormat }}</td>
+            <td><strong>{{ proforma.total | customCurrency }}</strong></td>
+            <td><span class="badge" [ngClass]="getStatusClass(proforma.status)">{{ getStatusLabel(proforma.status) }}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon btn-info" [routerLink]="['/proformas/detail', proforma.id]" title="Ver">👁️</button>
+                <button *ngIf="proforma.status === ProformaStatus.DRAFT" class="btn-icon btn-primary" [routerLink]="['/proformas/edit', proforma.id]" title="Editar">✏️</button>
+                <button *ngIf="proforma.status === ProformaStatus.SENT" class="btn-icon btn-success" (click)="approveProforma(proforma)" title="Aprobar">✓</button>
+                <button *ngIf="proforma.status === ProformaStatus.SENT" class="btn-icon btn-warning" (click)="rejectProforma(proforma)" title="Rechazar">✕</button>
+                <button *ngIf="proforma.status === ProformaStatus.APPROVED" class="btn-icon btn-primary" (click)="convertProforma(proforma)" title="Convertir">💰</button>
+                <button class="btn-icon btn-danger" (click)="confirmDelete(proforma)" title="Eliminar">🗑️</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredProformas.length === 0">
+            <td colspan="7" class="text-center"><div class="empty-state"><p>📄 No hay proformas</p></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog [show]="showDeleteDialog" [title]="'Eliminar Proforma'" [message]="'¿Eliminar ' + proformaToDelete?.proformaNumber + '?'" (confirmed)="deleteProforma()" (cancelled)="cancelDelete()"></app-confirm-dialog>

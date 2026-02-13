@@ -1,0 +1,237 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p>Resumen general del sistema</p>
+  </div>
+
+  <!-- Cards de Resumen -->
+  <div class="stats-grid" *ngIf="overview">
+    <div class="stat-card primary">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <h3>{{ overview.totalSales }}</h3>
+        <p>Total Ventas</p>
+      </div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <h3>{{ overview.completedSales }}</h3>
+        <p>Ventas Completadas</p>
+      </div>
+    </div>
+
+    <div class="stat-card warning">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-content">
+        <h3>{{ overview.pendingSales }}</h3>
+        <p>Ventas Pendientes</p>
+      </div>
+    </div>
+
+    <div class="stat-card info">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h3>{{ overview.totalCustomers }}</h3>
+        <p>Clientes</p>
+      </div>
+    </div>
+
+    <div class="stat-card secondary">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <h3>{{ overview.totalProducts }}</h3>
+        <p>Productos</p>
+      </div>
+    </div>
+
+    <div class="stat-card danger">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-content">
+        <h3>{{ overview.lowStockProducts }}</h3>
+        <p>Stock Bajo</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Métricas de Ventas -->
+  <div class="metrics-section" *ngIf="salesMetrics">
+    <div class="card">
+      <h2>Métricas de Ventas</h2>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-label">Ingresos Totales</span>
+          <span class="metric-value">{{ salesMetrics.totalRevenue | customCurrency }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Total Pagado</span>
+          <span class="metric-value">{{ salesMetrics.totalPaid | customCurrency }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Total Pendiente</span>
+          <span class="metric-value">{{ salesMetrics.totalPending | customCurrency }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Venta Promedio</span>
+          <span class="metric-value">{{ salesMetrics.avgSaleValue | customCurrency }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <!-- Top Productos -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Top 5 Productos</h2>
+        <a routerLink="/products" class="link">Ver todos</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Ingresos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of topProducts">
+              <td>
+                <div class="product-info">
+                  <strong>{{ product.productName }}</strong>
+                  <small>{{ product.productCode }}</small>
+                </div>
+              </td>
+              <td>{{ product.totalQuantity }}</td>
+              <td>{{ product.totalRevenue | customCurrency }}</td>
+            </tr>
+            <tr *ngIf="topProducts.length === 0">
+              <td colspan="3" class="text-center">No hay datos</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Clientes -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Top 5 Clientes</h2>
+        <a routerLink="/customers" class="link">Ver todos</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Compras</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let customer of topCustomers">
+              <td>
+                <div class="customer-info">
+                  <strong>{{ customer.customerName }}</strong>
+                  <small>{{ customer.documentNumber }}</small>
+                </div>
+              </td>
+              <td>{{ customer.salesCount }}</td>
+              <td>{{ customer.totalSpent | customCurrency }}</td>
+            </tr>
+            <tr *ngIf="topCustomers.length === 0">
+              <td colspan="3" class="text-center">No hay datos</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventas por Mes -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Ventas por Mes - {{ selectedYear }}</h2>
+    </div>
+    <div class="chart-container">
+      <div class="bar-chart">
+        <div class="bar-item" *ngFor="let month of monthlySales">
+          <div class="bar-wrapper">
+            <div 
+              class="bar" 
+              [style.height.%]="month.totalRevenue > 0 ? (month.totalRevenue / getMaxRevenue()) * 100 : 5"
+              [title]="month.totalRevenue | customCurrency"
+            ></div>
+          </div>
+          <span class="bar-label">{{ getMonthName(month.month) }}</span>
+          <span class="bar-value">{{ month.salesCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Bajo -->
+  <div class="card" *ngIf="lowStockProducts.length > 0">
+    <div class="card-header">
+      <h2>⚠️ Productos con Stock Bajo</h2>
+      <a routerLink="/inventory" class="link">Ver inventario</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Stock Disponible</th>
+            <th>Stock Mínimo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of lowStockProducts">
+            <td>{{ item.product?.name }}</td>
+            <td class="text-danger"><strong>{{ item.availableQuantity }}</strong></td>
+            <td>{{ item.product?.minStock }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Ventas Recientes -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Ventas Recientes</h2>
+      <a routerLink="/sales" class="link">Ver todas</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sale of recentSales">
+            <td><strong>{{ sale.saleNumber }}</strong></td>
+            <td>{{ sale.customer?.businessName }}</td>
+            <td>{{ sale.saleDate }}</td>
+            <td>{{ sale.total | customCurrency }}</td>
+            <td>
+              <span class="badge" [class]="'badge-' + sale.status.toLowerCase()">
+                {{ sale.status }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="recentSales.length === 0">
+            <td colspan="5" class="text-center">No hay ventas recientes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

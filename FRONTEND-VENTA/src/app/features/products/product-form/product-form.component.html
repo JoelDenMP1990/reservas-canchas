@@ -1,0 +1,149 @@
+<div class="product-form">
+  <div class="page-header">
+    <h1>{{ isEditMode ? 'Editar' : 'Nuevo' }} Producto</h1>
+    <p>{{ isEditMode ? 'Actualiza los datos del producto' : 'Completa los datos del nuevo producto' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="code">Código *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            placeholder="PROD001"
+            [class.error]="code?.invalid && code?.touched"
+          />
+          <div class="error-message" *ngIf="code?.invalid && code?.touched">
+            <span *ngIf="code?.errors?.['required']">El código es requerido</span>
+            <span *ngIf="code?.errors?.['maxlength']">Máximo 50 caracteres</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Nombre *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Nombre del producto"
+            [class.error]="name?.invalid && name?.touched"
+          />
+          <div class="error-message" *ngIf="name?.invalid && name?.touched">
+            <span *ngIf="name?.errors?.['required']">El nombre es requerido</span>
+            <span *ngIf="name?.errors?.['maxlength']">Máximo 255 caracteres</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Descripción</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Descripción del producto..."
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="unitOfMeasure">Unidad de Medida *</label>
+          <input
+            type="text"
+            id="unitOfMeasure"
+            formControlName="unitOfMeasure"
+            placeholder="UNIDAD, KG, CAJA"
+            [class.error]="unitOfMeasure?.invalid && unitOfMeasure?.touched"
+          />
+          <div class="error-message" *ngIf="unitOfMeasure?.invalid && unitOfMeasure?.touched">
+            <span *ngIf="unitOfMeasure?.errors?.['required']">La unidad es requerida</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Categoría</label>
+          <input
+            type="text"
+            id="category"
+            formControlName="category"
+            placeholder="Electrónica, Alimentos..."
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="basePrice">Precio Base *</label>
+          <input
+            type="number"
+            id="basePrice"
+            formControlName="basePrice"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            [class.error]="basePrice?.invalid && basePrice?.touched"
+          />
+          <div class="error-message" *ngIf="basePrice?.invalid && basePrice?.touched">
+            <span *ngIf="basePrice?.errors?.['required']">El precio es requerido</span>
+            <span *ngIf="basePrice?.errors?.['min']">El precio debe ser mayor a 0</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="costPrice">Precio Costo</label>
+          <input
+            type="number"
+            id="costPrice"
+            formControlName="costPrice"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minStock">Stock Mínimo</label>
+          <input
+            type="number"
+            id="minStock"
+            formControlName="minStock"
+            min="0"
+            placeholder="0"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="maxStock">Stock Máximo</label>
+          <input
+            type="number"
+            id="maxStock"
+            formControlName="maxStock"
+            min="0"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          <span>Producto Activo</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Producto
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

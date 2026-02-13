@@ -1,0 +1,119 @@
+<div class="product-list">
+  <div class="page-header">
+    <div>
+      <h1>Productos</h1>
+      <p>Gestión de productos del sistema</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/products/new">
+      ➕ Nuevo Producto
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters">
+      <div class="search-box">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterProducts()"
+          placeholder="🔍 Buscar por nombre o código..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="selectedCategory" (ngModelChange)="filterProducts()" class="filter-select">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>U. Medida</th>
+            <th>Precio Base</th>
+            <th>Precio Costo</th>
+            <th>Stock Mín.</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of filteredProducts">
+            <td><strong>{{ product.code }}</strong></td>
+            <td>{{ product.name }}</td>
+            <td>
+              <span class="badge badge-secondary" *ngIf="product.category">
+                {{ product.category }}
+              </span>
+              <span *ngIf="!product.category">-</span>
+            </td>
+            <td>{{ product.unitOfMeasure }}</td>
+            <td>{{ product.basePrice | customCurrency }}</td>
+            <td>{{ product.costPrice ? (product.costPrice | customCurrency) : '-' }}</td>
+            <td>{{ product.minStock }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="product.isActive" [class.badge-danger]="!product.isActive">
+                {{ product.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-primary"
+                  [routerLink]="['/products/edit', product.id]"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  class="btn-icon"
+                  [class.btn-warning]="product.isActive"
+                  [class.btn-success]="!product.isActive"
+                  (click)="toggleActive(product)"
+                  [title]="product.isActive ? 'Desactivar' : 'Activar'"
+                >
+                  {{ product.isActive ? '⏸️' : '▶️' }}
+                </button>
+                <button
+                  class="btn-icon btn-danger"
+                  (click)="confirmDelete(product)"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredProducts.length === 0">
+            <td colspan="9" class="text-center">
+              <div class="empty-state">
+                <p>📦 No hay productos para mostrar</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [show]="showDeleteDialog"
+  [title]="'Eliminar Producto'"
+  [message]="'¿Estás seguro de eliminar el producto ' + productToDelete?.name + '?'"
+  [confirmText]="'Eliminar'"
+  [cancelText]="'Cancelar'"
+  (confirmed)="deleteProduct()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>
