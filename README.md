@@ -72,23 +72,3 @@ Desarrollador Full Stack
 📄 Licencia
 Proyecto privado.
 
-
----
-
-## 📌 POR QUÉ AHORA SE VERÁ BIEN
-
-- Usa `#` y `##` → GitHub aplica estilos correctos
-- Separadores `---` → mejora visual
-- Bloques de código con ``` → alineación perfecta
-- Estructura clara → GitHub ya no lo centra raro
-
----
-
-Si quieres, ahora lo dejamos nivel GitHub Pro con:
-
-- 🔥 Badges arriba
-- 🖼️ Capturas
-- 📊 Roadmap
-- 📈 Estado del proyecto
-- 🧪 Sección de testing
-- 🌐 Deploy demo
