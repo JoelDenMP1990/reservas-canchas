@@ -1,0 +1,32 @@
+@startuml diagrama-casos-uso
+left to right direction
+skinparam packageStyle rectangle
+
+actor Cliente
+actor Administrador
+
+rectangle "Sistema de Reservas de Canchas Deportivas" {
+  usecase "Crear Reserva" as UC1
+  usecase "Cancelar Reserva" as UC2
+  usecase "Registrar Cancha" as UC3
+  usecase "Verificar Disponibilidad" as UC4
+  usecase "Aplicar Descuento por Horario" as UC5
+  usecase "Verificar Política de Cancelación" as UC6
+}
+
+Cliente --> UC1
+Cliente --> UC2
+Administrador --> UC3
+Administrador --> UC2
+
+UC1 ..> UC4 : <<include>>
+UC1 ..> UC5 : <<extend>>
+UC2 ..> UC6 : <<include>>
+
+note right of UC5
+  Se activa solo cuando la franja
+  horaria reservada corresponde a
+  un horario de baja demanda.
+end note
+
+@enduml
