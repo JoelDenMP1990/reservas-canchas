@@ -1,6 +1,7 @@
 import { Reserva } from '../domain/Reserva';
 import { EstadoReserva } from '../domain/EstadoReserva';
 import { TipoCancha } from '../domain/TipoCancha';
+import { Cancha } from '../domain/Cancha';
 import { ReservaRepository } from './ports/ReservaRepository';
 import { CanchaRepository } from './ports/CanchaRepository';
 import { generarId } from '../shared/generarId';
@@ -14,9 +15,8 @@ export class ReservaService {
     private readonly canchaRepository: CanchaRepository,
   ) {}
 
-  // SMELL 1 (Long Method) + SMELL 3 (Large/God Class): un solo método hace validación de
-  // disponibilidad, cálculo de tarifa, persistencia y notificación.
-  // SMELL 5 (Complex Conditional) + SMELL 6 (Magic Numbers): ver el bloque if/else de tarifa.
+  // R1 (Fase 3, Extract Method): crearReserva ahora es un orquestador corto de pasos nombrados,
+  // en vez de un único método de ~65 líneas con 5 responsabilidades mezcladas.
   crearReserva(
     clienteId: string,
     canchaId: string,
@@ -24,74 +24,18 @@ export class ReservaService {
     horaInicio: string,
     horaFin: string,
   ): Reserva {
-    const cancha = this.canchaRepository.buscarPorId(canchaId);
-    if (!cancha) {
-      throw new Error('Cancha no encontrada');
-    }
-
-    const reservasExistentes = this.reservaRepository.listarPorCancha(canchaId);
-    for (const r of reservasExistentes) {
-      const seSolapan =
-        r.estado !== EstadoReserva.CANCELADA &&
-        r.fecha === fecha &&
-        !(horaFin <= r.horaInicio || horaInicio >= r.horaFin);
-      if (seSolapan) {
-        throw new Error('La cancha no está disponible en esa franja horaria');
-      }
-    }
-
-    let precioTotal = 0;
-    const horaNum = parseInt(horaInicio.split(':')[0], 10);
-    if (cancha.tipo === TipoCancha.FUTBOL) {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.8;
-      } else if (horaNum >= 18 && horaNum < 22) {
-        precioTotal = cancha.tarifaBase * 1.3;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    } else if (cancha.tipo === TipoCancha.BASQUET) {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.9;
-      } else if (horaNum >= 18 && horaNum < 22) {
-        precioTotal = cancha.tarifaBase * 1.2;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    } else {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.85;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    }
-
-    const reserva = new Reserva(
-      generarId('res'),
-      clienteId,
-      canchaId,
-      fecha,
-      horaInicio,
-      horaFin,
-      precioTotal,
-      new Date(),
-    );
-    reserva.estado = EstadoReserva.CONFIRMADA;
-    this.reservaRepository.guardar(reserva);
-
-    // eslint-disable-next-line no-console
-    console.log(`[notificacion] Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
-
+    const cancha = this.buscarCanchaOFallar(canchaId);
+    this.verificarDisponibilidad(canchaId, fecha, horaInicio, horaFin);
+    const precioTotal = this.calcularTarifa(cancha, horaInicio);
+    const reserva = this.crearYPersistirReserva(clienteId, canchaId, fecha, horaInicio, horaFin, precioTotal);
+    this.notificar(`Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
     return reserva;
   }
 
-  // SMELL 2 (Duplicated Code): repite exactamente el mismo cálculo de tarifa que crearReserva(),
-  // usado por el frontend para mostrar una cotización antes de confirmar.
+  // SMELL 2 (Duplicated Code) — se corrige en R2: aún duplica el bloque de cálculo de tarifa
+  // en vez de reutilizar el método privado calcularTarifa().
   cotizarPrecio(canchaId: string, horaInicio: string): number {
-    const cancha = this.canchaRepository.buscarPorId(canchaId);
-    if (!cancha) {
-      throw new Error('Cancha no encontrada');
-    }
+    const cancha = this.buscarCanchaOFallar(canchaId);
 
     let precioTotal = 0;
     const horaNum = parseInt(horaInicio.split(':')[0], 10);
@@ -132,7 +76,8 @@ export class ReservaService {
     const ahora = new Date();
     const horasDeAntelacion = (inicioReserva.getTime() - ahora.getTime()) / (1000 * 60 * 60);
 
-    // SMELL 6 (Magic Number): "2" horas mínimas de antelación, sin constante con nombre.
+    // SMELL 6 (Magic Number): "2" horas mínimas de antelación, sin constante con nombre. Se
+    // corrige en R5.
     if (horasDeAntelacion < 2) {
       throw new Error('No se puede cancelar con menos de 2 horas de antelación');
     }
@@ -140,7 +85,92 @@ export class ReservaService {
     reserva.estado = EstadoReserva.CANCELADA;
     this.reservaRepository.guardar(reserva);
 
+    this.notificar(`Reserva ${reserva.id} cancelada`);
+  }
+
+  private buscarCanchaOFallar(canchaId: string): Cancha {
+    const cancha = this.canchaRepository.buscarPorId(canchaId);
+    if (!cancha) {
+      throw new Error('Cancha no encontrada');
+    }
+    return cancha;
+  }
+
+  private verificarDisponibilidad(
+    canchaId: string,
+    fecha: string,
+    horaInicio: string,
+    horaFin: string,
+  ): void {
+    const reservasExistentes = this.reservaRepository.listarPorCancha(canchaId);
+    for (const r of reservasExistentes) {
+      const seSolapan =
+        r.estado !== EstadoReserva.CANCELADA &&
+        r.fecha === fecha &&
+        !(horaFin <= r.horaInicio || horaInicio >= r.horaFin);
+      if (seSolapan) {
+        throw new Error('La cancha no está disponible en esa franja horaria');
+      }
+    }
+  }
+
+  // SMELL 5 (Complex Conditional) + SMELL 6 (Magic Numbers) — se corrige en R6 (Strategy).
+  private calcularTarifa(cancha: Cancha, horaInicio: string): number {
+    let precioTotal = 0;
+    const horaNum = parseInt(horaInicio.split(':')[0], 10);
+    if (cancha.tipo === TipoCancha.FUTBOL) {
+      if (horaNum >= 6 && horaNum < 10) {
+        precioTotal = cancha.tarifaBase * 0.8;
+      } else if (horaNum >= 18 && horaNum < 22) {
+        precioTotal = cancha.tarifaBase * 1.3;
+      } else {
+        precioTotal = cancha.tarifaBase;
+      }
+    } else if (cancha.tipo === TipoCancha.BASQUET) {
+      if (horaNum >= 6 && horaNum < 10) {
+        precioTotal = cancha.tarifaBase * 0.9;
+      } else if (horaNum >= 18 && horaNum < 22) {
+        precioTotal = cancha.tarifaBase * 1.2;
+      } else {
+        precioTotal = cancha.tarifaBase;
+      }
+    } else {
+      if (horaNum >= 6 && horaNum < 10) {
+        precioTotal = cancha.tarifaBase * 0.85;
+      } else {
+        precioTotal = cancha.tarifaBase;
+      }
+    }
+    return precioTotal;
+  }
+
+  private crearYPersistirReserva(
+    clienteId: string,
+    canchaId: string,
+    fecha: string,
+    horaInicio: string,
+    horaFin: string,
+    precioTotal: number,
+  ): Reserva {
+    const reserva = new Reserva(
+      generarId('res'),
+      clienteId,
+      canchaId,
+      fecha,
+      horaInicio,
+      horaFin,
+      precioTotal,
+      new Date(),
+    );
+    reserva.estado = EstadoReserva.CONFIRMADA;
+    this.reservaRepository.guardar(reserva);
+    return reserva;
+  }
+
+  // SMELL 3 (Large/God Class) — la notificación sigue viviendo aquí; se corrige en R3
+  // (Extract Class → NotificacionService).
+  private notificar(mensaje: string): void {
     // eslint-disable-next-line no-console
-    console.log(`[notificacion] Reserva ${reserva.id} cancelada`);
+    console.log(`[notificacion] ${mensaje}`);
   }
 }
