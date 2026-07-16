@@ -32,38 +32,11 @@ export class ReservaService {
     return reserva;
   }
 
-  // SMELL 2 (Duplicated Code) — se corrige en R2: aún duplica el bloque de cálculo de tarifa
-  // en vez de reutilizar el método privado calcularTarifa().
+  // R2 (Fase 3, Extract Method / eliminar duplicación): reutiliza el mismo método privado
+  // calcularTarifa() que usa crearReserva(), en vez de mantener una copia del cálculo.
   cotizarPrecio(canchaId: string, horaInicio: string): number {
     const cancha = this.buscarCanchaOFallar(canchaId);
-
-    let precioTotal = 0;
-    const horaNum = parseInt(horaInicio.split(':')[0], 10);
-    if (cancha.tipo === TipoCancha.FUTBOL) {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.8;
-      } else if (horaNum >= 18 && horaNum < 22) {
-        precioTotal = cancha.tarifaBase * 1.3;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    } else if (cancha.tipo === TipoCancha.BASQUET) {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.9;
-      } else if (horaNum >= 18 && horaNum < 22) {
-        precioTotal = cancha.tarifaBase * 1.2;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    } else {
-      if (horaNum >= 6 && horaNum < 10) {
-        precioTotal = cancha.tarifaBase * 0.85;
-      } else {
-        precioTotal = cancha.tarifaBase;
-      }
-    }
-
-    return precioTotal;
+    return this.calcularTarifa(cancha, horaInicio);
   }
 
   cancelarReserva(reservaId: string): void {
