@@ -5,14 +5,21 @@ import { InMemoryReservaRepository } from './infrastructure/repositories/InMemor
 import { CanchaService } from './application/CanchaService';
 import { ReservaService } from './application/ReservaService';
 import { NotificacionService } from './application/NotificacionService';
+import { DisponibilidadService } from './application/DisponibilidadService';
 import { crearCanchasRouter } from './api/routes/canchas.routes';
 import { crearReservasRouter } from './api/routes/reservas.routes';
 
 const canchaRepository = new InMemoryCanchaRepository();
 const reservaRepository = new InMemoryReservaRepository();
 const notificacionService = new NotificacionService();
+const disponibilidadService = new DisponibilidadService(reservaRepository);
 const canchaService = new CanchaService(canchaRepository);
-const reservaService = new ReservaService(reservaRepository, canchaRepository, notificacionService);
+const reservaService = new ReservaService(
+  reservaRepository,
+  canchaRepository,
+  notificacionService,
+  disponibilidadService,
+);
 
 const app = express();
 app.use(cors());

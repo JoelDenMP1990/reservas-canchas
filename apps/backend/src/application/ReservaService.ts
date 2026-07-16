@@ -5,6 +5,7 @@ import { Cancha } from '../domain/Cancha';
 import { ReservaRepository } from './ports/ReservaRepository';
 import { CanchaRepository } from './ports/CanchaRepository';
 import { NotificacionService } from './NotificacionService';
+import { DisponibilidadService } from './DisponibilidadService';
 import { generarId } from '../shared/generarId';
 
 // Nota (Fase 2 → ver docs/fase2-diagnostico/informe-malos-olores.md): esta clase concentra
@@ -15,6 +16,7 @@ export class ReservaService {
     private readonly reservaRepository: ReservaRepository,
     private readonly canchaRepository: CanchaRepository,
     private readonly notificacionService: NotificacionService,
+    private readonly disponibilidadService: DisponibilidadService,
   ) {}
 
   // R1 (Fase 3, Extract Method): crearReserva ahora es un orquestador corto de pasos nombrados,
@@ -27,7 +29,7 @@ export class ReservaService {
     horaFin: string,
   ): Reserva {
     const cancha = this.buscarCanchaOFallar(canchaId);
-    this.verificarDisponibilidad(canchaId, fecha, horaInicio, horaFin);
+    this.disponibilidadService.verificarDisponibilidad(canchaId, fecha, horaInicio, horaFin);
     const precioTotal = this.calcularTarifa(cancha, horaInicio);
     const reserva = this.crearYPersistirReserva(clienteId, canchaId, fecha, horaInicio, horaFin, precioTotal);
     this.notificacionService.notificar(`Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
@@ -69,24 +71,6 @@ export class ReservaService {
       throw new Error('Cancha no encontrada');
     }
     return cancha;
-  }
-
-  private verificarDisponibilidad(
-    canchaId: string,
-    fecha: string,
-    horaInicio: string,
-    horaFin: string,
-  ): void {
-    const reservasExistentes = this.reservaRepository.listarPorCancha(canchaId);
-    for (const r of reservasExistentes) {
-      const seSolapan =
-        r.estado !== EstadoReserva.CANCELADA &&
-        r.fecha === fecha &&
-        !(horaFin <= r.horaInicio || horaInicio >= r.horaFin);
-      if (seSolapan) {
-        throw new Error('La cancha no está disponible en esa franja horaria');
-      }
-    }
   }
 
   // SMELL 5 (Complex Conditional) + SMELL 6 (Magic Numbers) — se corrige en R6 (Strategy).
