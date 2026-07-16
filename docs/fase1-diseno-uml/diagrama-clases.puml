@@ -1,0 +1,121 @@
+@startuml diagrama-clases-inicial
+skinparam classAttributeIconSize 0
+
+abstract class Usuario {
+  -id: string
+  -nombre: string
+  -email: string
+  -telefono: string
+}
+
+class Cliente extends Usuario {
+  -historialReservas: Reserva[]
+}
+
+class Administrador extends Usuario
+
+enum TipoCancha {
+  FUTBOL
+  BASQUET
+  TENIS
+  VOLEY
+}
+
+class Cancha {
+  -id: string
+  -nombre: string
+  -tipo: TipoCancha
+  -tarifaBase: number
+  -ubicacion: string
+  +estaDisponibleEn(franja: FranjaHoraria): boolean
+}
+
+class FranjaHoraria {
+  -fecha: Date
+  -horaInicio: string
+  -horaFin: string
+  +seSolapaCon(otra: FranjaHoraria): boolean
+  +esHorarioPico(): boolean
+}
+
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+class Reserva {
+  -id: string
+  -estado: EstadoReserva
+  -precioTotal: number
+  -fechaCreacion: Date
+  +confirmar(): void
+  +cancelar(): void
+}
+
+interface EstrategiaTarifa {
+  +calcular(cancha: Cancha, franja: FranjaHoraria): number
+}
+
+class TarifaEstandar implements EstrategiaTarifa
+class TarifaHorarioPico implements EstrategiaTarifa
+class TarifaPromocional implements EstrategiaTarifa
+
+interface ReservaRepository {
+  +guardar(reserva: Reserva): void
+  +buscarPorId(id: string): Reserva
+  +listarPorCliente(clienteId: string): Reserva[]
+}
+
+interface CanchaRepository {
+  +guardar(cancha: Cancha): void
+  +listarTodas(): Cancha[]
+}
+
+class InMemoryReservaRepository implements ReservaRepository
+class InMemoryCanchaRepository implements CanchaRepository
+
+class ReservaService {
+  -reservaRepository: ReservaRepository
+  -canchaRepository: CanchaRepository
+  -estrategiaTarifa: EstrategiaTarifa
+  +crearReserva(clienteId, canchaId, franja): Reserva
+  +cancelarReserva(reservaId): void
+}
+
+class CanchaService {
+  -canchaRepository: CanchaRepository
+  +registrarCancha(datos): Cancha
+  +listarDisponibles(franja): Cancha[]
+}
+
+Usuario <|-- Cliente
+Usuario <|-- Administrador
+
+Reserva "0..*" --> "1" Cliente : pertenece a
+Reserva "0..*" --> "1" Cancha : reserva
+Reserva "1" *-- "1" FranjaHoraria : ocupa
+Reserva --> EstadoReserva
+Cancha --> TipoCancha
+
+EstrategiaTarifa <|.. TarifaEstandar
+EstrategiaTarifa <|.. TarifaHorarioPico
+EstrategiaTarifa <|.. TarifaPromocional
+
+ReservaRepository <|.. InMemoryReservaRepository
+CanchaRepository <|.. InMemoryCanchaRepository
+
+ReservaService "1" --> "1" ReservaRepository
+ReservaService "1" --> "1" CanchaRepository
+ReservaService "1" --> "1" EstrategiaTarifa : usa >
+CanchaService "1" --> "1" CanchaRepository
+
+note right of EstrategiaTarifa
+  Patrón Strategy: encapsula las
+  distintas políticas de cálculo de
+  tarifa (estándar, horario pico,
+  promocional) evitando condicionales
+  complejos en ReservaService.
+end note
+@enduml
