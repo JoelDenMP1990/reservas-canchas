@@ -19,19 +19,38 @@ de estado de su reserva.
 2. **Cancelar Reserva** — «include» Verificar Política de Cancelación.
 3. **Registrar Cancha** — (rol Administrador).
 
-## Estructura del repositorio
+## Arquitectura
+
+**Monorepo** con dos paquetes (npm workspaces):
+
+- `apps/backend` — API REST (Express) + toda la lógica de dominio y de aplicación. Aquí viven las
+  8 clases de dominio, los servicios de los casos de uso, los repositorios en memoria y las pruebas
+  unitarias. Es el paquete evaluado por la rúbrica (UML, OO/SOLID, malos olores, refactor).
+- `apps/frontend` — interfaz web (Vite + TypeScript) que consume la API del backend para ejecutar
+  los 3 casos de uso desde el navegador.
+
+Se eligió **monorepo** en vez de microservicios porque el sistema tiene un único dominio cohesivo
+(reservas de canchas) sin necesidad de escalar o desplegar componentes por separado; dividirlo en
+microservicios habría agregado complejidad de infraestructura (comunicación entre servicios,
+orquestación) sin beneficio real para el alcance del proyecto. La separación backend/frontend en
+paquetes independientes ya da el desacople necesario para evolucionar cada capa por separado.
 
 ```
 docs/
   fase1-diseno-uml/        Documento de diseño 4+1 y diagramas UML (PlantUML)
   fase2-diagnostico/       Informe de malos olores identificados en el código base
   fase3-refactorizacion/   Informe final de refactorización y diagrama de clases actualizado
-src/
-  domain/                  Entidades y value objects del dominio
-  application/             Servicios de aplicación (casos de uso)
-  infrastructure/          Repositorios en memoria
-  demo/                    Script de demostración por consola
-tests/                     Suite de pruebas unitarias (Jest)
+apps/
+  backend/
+    src/
+      domain/              Entidades y value objects del dominio
+      application/          Servicios de aplicación (casos de uso)
+      infrastructure/       Repositorios en memoria
+      api/                  Rutas y controladores Express (adaptador HTTP sobre application/)
+      demo/                 Script de demostración por consola
+    tests/                 Suite de pruebas unitarias (Jest)
+  frontend/
+    src/                   Interfaz web (TypeScript + Vite) que consume la API
 ```
 
 ## Requisitos
@@ -45,15 +64,26 @@ tests/                     Suite de pruebas unitarias (Jest)
 npm install
 ```
 
+Instala las dependencias de ambos workspaces (`apps/backend` y `apps/frontend`) desde la raíz.
+
 ## Pruebas
 
 ```bash
 npm test
 ```
 
+Corre la suite de Jest del backend (donde vive toda la lógica evaluada por la rúbrica).
+
+## Ejecutar el sistema
+
+```bash
+npm run dev:backend    # levanta la API en http://localhost:3000
+npm run dev:frontend   # levanta la UI en http://localhost:5173 (otra terminal)
+```
+
 ## Demo por consola
 
-Ejecuta el flujo completo de los 3 casos de uso principales:
+Alternativa rápida sin levantar servidores, ejecuta el flujo completo de los 3 casos de uso:
 
 ```bash
 npm run demo

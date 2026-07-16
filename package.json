@@ -1,21 +1,18 @@
 {
   "name": "sistema-canchas",
   "version": "1.0.0",
-  "description": "Sistema de reservas de canchas deportivas — proyecto académico (UML 4+1, OO, refactorización)",
-  "main": "dist/demo/index.js",
+  "private": true,
+  "description": "Sistema de reservas de canchas deportivas — proyecto académico (UML 4+1, OO, refactorización). Monorepo: apps/backend (API) + apps/frontend (UI).",
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend"
+  ],
   "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "demo": "ts-node src/demo/index.ts"
+    "test": "npm run test --workspace=apps/backend",
+    "build": "npm run build --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "demo": "npm run demo --workspace=apps/backend"
   },
-  "license": "UNLICENSED",
-  "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^20.14.10",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
-  }
+  "license": "UNLICENSED"
 }
