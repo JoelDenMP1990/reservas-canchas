@@ -4,6 +4,7 @@ import { TipoCancha } from '../domain/TipoCancha';
 import { Cancha } from '../domain/Cancha';
 import { ReservaRepository } from './ports/ReservaRepository';
 import { CanchaRepository } from './ports/CanchaRepository';
+import { NotificacionService } from './NotificacionService';
 import { generarId } from '../shared/generarId';
 
 // Nota (Fase 2 → ver docs/fase2-diagnostico/informe-malos-olores.md): esta clase concentra
@@ -13,6 +14,7 @@ export class ReservaService {
   constructor(
     private readonly reservaRepository: ReservaRepository,
     private readonly canchaRepository: CanchaRepository,
+    private readonly notificacionService: NotificacionService,
   ) {}
 
   // R1 (Fase 3, Extract Method): crearReserva ahora es un orquestador corto de pasos nombrados,
@@ -28,7 +30,7 @@ export class ReservaService {
     this.verificarDisponibilidad(canchaId, fecha, horaInicio, horaFin);
     const precioTotal = this.calcularTarifa(cancha, horaInicio);
     const reserva = this.crearYPersistirReserva(clienteId, canchaId, fecha, horaInicio, horaFin, precioTotal);
-    this.notificar(`Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
+    this.notificacionService.notificar(`Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
     return reserva;
   }
 
@@ -58,7 +60,7 @@ export class ReservaService {
     reserva.estado = EstadoReserva.CANCELADA;
     this.reservaRepository.guardar(reserva);
 
-    this.notificar(`Reserva ${reserva.id} cancelada`);
+    this.notificacionService.notificar(`Reserva ${reserva.id} cancelada`);
   }
 
   private buscarCanchaOFallar(canchaId: string): Cancha {
@@ -138,12 +140,5 @@ export class ReservaService {
     reserva.estado = EstadoReserva.CONFIRMADA;
     this.reservaRepository.guardar(reserva);
     return reserva;
-  }
-
-  // SMELL 3 (Large/God Class) — la notificación sigue viviendo aquí; se corrige en R3
-  // (Extract Class → NotificacionService).
-  private notificar(mensaje: string): void {
-    // eslint-disable-next-line no-console
-    console.log(`[notificacion] ${mensaje}`);
   }
 }

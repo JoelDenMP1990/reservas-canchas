@@ -2,13 +2,15 @@ import { InMemoryCanchaRepository } from '../infrastructure/repositories/InMemor
 import { InMemoryReservaRepository } from '../infrastructure/repositories/InMemoryReservaRepository';
 import { CanchaService } from '../application/CanchaService';
 import { ReservaService } from '../application/ReservaService';
+import { NotificacionService } from '../application/NotificacionService';
 import { TipoCancha } from '../domain/TipoCancha';
 
 function main(): void {
   const canchaRepository = new InMemoryCanchaRepository();
   const reservaRepository = new InMemoryReservaRepository();
+  const notificacionService = new NotificacionService();
   const canchaService = new CanchaService(canchaRepository);
-  const reservaService = new ReservaService(reservaRepository, canchaRepository);
+  const reservaService = new ReservaService(reservaRepository, canchaRepository, notificacionService);
 
   console.log('== UC3: Registrar Cancha (Administrador) ==');
   const cancha = canchaService.registrarCancha(

@@ -1,5 +1,6 @@
 import { ReservaService } from '../../src/application/ReservaService';
 import { CanchaService } from '../../src/application/CanchaService';
+import { NotificacionService } from '../../src/application/NotificacionService';
 import { InMemoryCanchaRepository } from '../../src/infrastructure/repositories/InMemoryCanchaRepository';
 import { InMemoryReservaRepository } from '../../src/infrastructure/repositories/InMemoryReservaRepository';
 import { TipoCancha } from '../../src/domain/TipoCancha';
@@ -15,7 +16,7 @@ describe('ReservaService', () => {
     canchaRepository = new InMemoryCanchaRepository();
     reservaRepository = new InMemoryReservaRepository();
     canchaService = new CanchaService(canchaRepository);
-    reservaService = new ReservaService(reservaRepository, canchaRepository);
+    reservaService = new ReservaService(reservaRepository, canchaRepository, new NotificacionService());
   });
 
   test('crea una reserva válida y la deja confirmada (UC1)', () => {
