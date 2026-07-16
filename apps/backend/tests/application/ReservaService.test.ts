@@ -6,6 +6,7 @@ import { InMemoryCanchaRepository } from '../../src/infrastructure/repositories/
 import { InMemoryReservaRepository } from '../../src/infrastructure/repositories/InMemoryReservaRepository';
 import { TipoCancha } from '../../src/domain/TipoCancha';
 import { EstadoReserva } from '../../src/domain/EstadoReserva';
+import { FranjaHoraria } from '../../src/domain/FranjaHoraria';
 
 describe('ReservaService', () => {
   let canchaRepository: InMemoryCanchaRepository;
@@ -28,7 +29,11 @@ describe('ReservaService', () => {
   test('crea una reserva válida y la deja confirmada (UC1)', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
 
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '07:00', '08:00');
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '07:00', '08:00'),
+    );
 
     expect(reserva.estado).toBe(EstadoReserva.CONFIRMADA);
     expect(reservaRepository.buscarPorId(reserva.id)).toEqual(reserva);
@@ -37,7 +42,11 @@ describe('ReservaService', () => {
   test('aplica descuento en horario de baja demanda para fútbol', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
 
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '07:00', '08:00');
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '07:00', '08:00'),
+    );
 
     expect(reserva.precioTotal).toBe(32);
   });
@@ -45,23 +54,35 @@ describe('ReservaService', () => {
   test('aplica tarifa de horario pico para fútbol', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
 
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '19:00', '20:00');
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '19:00', '20:00'),
+    );
 
     expect(reserva.precioTotal).toBe(52);
   });
 
   test('rechaza reservar una cancha ya ocupada en una franja solapada', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
-    reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '07:00', '08:00');
+    reservaService.crearReserva('cliente-1', cancha.id, new FranjaHoraria('2026-08-01', '07:00', '08:00'));
 
     expect(() =>
-      reservaService.crearReserva('cliente-2', cancha.id, '2026-08-01', '07:30', '08:30'),
+      reservaService.crearReserva(
+        'cliente-2',
+        cancha.id,
+        new FranjaHoraria('2026-08-01', '07:30', '08:30'),
+      ),
     ).toThrow('no está disponible');
   });
 
   test('rechaza reservar una cancha inexistente', () => {
     expect(() =>
-      reservaService.crearReserva('cliente-1', 'cancha-inexistente', '2026-08-01', '07:00', '08:00'),
+      reservaService.crearReserva(
+        'cliente-1',
+        'cancha-inexistente',
+        new FranjaHoraria('2026-08-01', '07:00', '08:00'),
+      ),
     ).toThrow('Cancha no encontrada');
   });
 
@@ -69,14 +90,22 @@ describe('ReservaService', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.BASQUET, 30, 'Zona Norte');
 
     const cotizacion = reservaService.cotizarPrecio(cancha.id, '19:00');
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '19:00', '20:00');
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '19:00', '20:00'),
+    );
 
     expect(cotizacion).toBe(reserva.precioTotal);
   });
 
   test('cancela una reserva con antelación suficiente (UC2)', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '07:00', '08:00');
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '07:00', '08:00'),
+    );
 
     reservaService.cancelarReserva(reserva.id);
 
@@ -94,7 +123,11 @@ describe('ReservaService', () => {
       enUnaHora.getMinutes(),
     ).padStart(2, '0')}`;
 
-    const reserva = reservaService.crearReserva('cliente-1', cancha.id, fecha, horaInicio, horaFin);
+    const reserva = reservaService.crearReserva(
+      'cliente-1',
+      cancha.id,
+      new FranjaHoraria(fecha, horaInicio, horaFin),
+    );
 
     expect(() => reservaService.cancelarReserva(reserva.id)).toThrow('antelación');
   });

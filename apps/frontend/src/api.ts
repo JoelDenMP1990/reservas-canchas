@@ -12,9 +12,11 @@ export interface Reserva {
   id: string;
   clienteId: string;
   canchaId: string;
-  fecha: string;
-  horaInicio: string;
-  horaFin: string;
+  franjaHoraria: {
+    fecha: string;
+    horaInicio: string;
+    horaFin: string;
+  };
   precioTotal: number;
   estado: string;
 }

@@ -2,11 +2,17 @@ import { Reserva } from '../domain/Reserva';
 import { EstadoReserva } from '../domain/EstadoReserva';
 import { TipoCancha } from '../domain/TipoCancha';
 import { Cancha } from '../domain/Cancha';
+import { FranjaHoraria } from '../domain/FranjaHoraria';
 import { ReservaRepository } from './ports/ReservaRepository';
 import { CanchaRepository } from './ports/CanchaRepository';
 import { NotificacionService } from './NotificacionService';
 import { DisponibilidadService } from './DisponibilidadService';
 import { generarId } from '../shared/generarId';
+
+// R5 (Fase 3, Replace Magic Number with Symbolic Constant): antes "2" y "1000 * 60 * 60" sueltos
+// dentro de cancelarReserva(), sin ningún nombre que explicara su significado de negocio.
+const ANTELACION_MINIMA_CANCELACION_HORAS = 2;
+const MILISEGUNDOS_POR_HORA = 1000 * 60 * 60;
 
 // Nota (Fase 2 → ver docs/fase2-diagnostico/informe-malos-olores.md): esta clase concentra
 // deliberadamente varios malos olores que se corrigen en la Fase 3. No "limpiar" antes de tiempo:
@@ -19,19 +25,13 @@ export class ReservaService {
     private readonly disponibilidadService: DisponibilidadService,
   ) {}
 
-  // R1 (Fase 3, Extract Method): crearReserva ahora es un orquestador corto de pasos nombrados,
-  // en vez de un único método de ~65 líneas con 5 responsabilidades mezcladas.
-  crearReserva(
-    clienteId: string,
-    canchaId: string,
-    fecha: string,
-    horaInicio: string,
-    horaFin: string,
-  ): Reserva {
+  // R1 (Extract Method) + R5 (Replace Primitive with Object): crearReserva ahora recibe una
+  // FranjaHoraria en vez de 3 strings sueltos (fecha, horaInicio, horaFin).
+  crearReserva(clienteId: string, canchaId: string, franjaHoraria: FranjaHoraria): Reserva {
     const cancha = this.buscarCanchaOFallar(canchaId);
-    this.disponibilidadService.verificarDisponibilidad(canchaId, fecha, horaInicio, horaFin);
-    const precioTotal = this.calcularTarifa(cancha, horaInicio);
-    const reserva = this.crearYPersistirReserva(clienteId, canchaId, fecha, horaInicio, horaFin, precioTotal);
+    this.disponibilidadService.verificarDisponibilidad(canchaId, franjaHoraria);
+    const precioTotal = this.calcularTarifa(cancha, franjaHoraria.horaInicio);
+    const reserva = this.crearYPersistirReserva(clienteId, canchaId, franjaHoraria, precioTotal);
     this.notificacionService.notificar(`Reserva ${reserva.id} confirmada para cliente ${clienteId}`);
     return reserva;
   }
@@ -49,14 +49,14 @@ export class ReservaService {
       throw new Error('Reserva no encontrada');
     }
 
-    const inicioReserva = new Date(`${reserva.fecha}T${reserva.horaInicio}:00`);
+    const inicioReserva = reserva.franjaHoraria.calcularInicioComoFecha();
     const ahora = new Date();
-    const horasDeAntelacion = (inicioReserva.getTime() - ahora.getTime()) / (1000 * 60 * 60);
+    const horasDeAntelacion = (inicioReserva.getTime() - ahora.getTime()) / MILISEGUNDOS_POR_HORA;
 
-    // SMELL 6 (Magic Number): "2" horas mínimas de antelación, sin constante con nombre. Se
-    // corrige en R5.
-    if (horasDeAntelacion < 2) {
-      throw new Error('No se puede cancelar con menos de 2 horas de antelación');
+    if (horasDeAntelacion < ANTELACION_MINIMA_CANCELACION_HORAS) {
+      throw new Error(
+        `No se puede cancelar con menos de ${ANTELACION_MINIMA_CANCELACION_HORAS} horas de antelación`,
+      );
     }
 
     reserva.estado = EstadoReserva.CANCELADA;
@@ -73,7 +73,7 @@ export class ReservaService {
     return cancha;
   }
 
-  // SMELL 5 (Complex Conditional) + SMELL 6 (Magic Numbers) — se corrige en R6 (Strategy).
+  // SMELL 5 (Complex Conditional) + SMELL 6 (Magic Numbers de tarifa) — se corrige en R6 (Strategy).
   private calcularTarifa(cancha: Cancha, horaInicio: string): number {
     let precioTotal = 0;
     const horaNum = parseInt(horaInicio.split(':')[0], 10);
@@ -106,18 +106,14 @@ export class ReservaService {
   private crearYPersistirReserva(
     clienteId: string,
     canchaId: string,
-    fecha: string,
-    horaInicio: string,
-    horaFin: string,
+    franjaHoraria: FranjaHoraria,
     precioTotal: number,
   ): Reserva {
     const reserva = new Reserva(
       generarId('res'),
       clienteId,
       canchaId,
-      fecha,
-      horaInicio,
-      horaFin,
+      franjaHoraria,
       precioTotal,
       new Date(),
     );

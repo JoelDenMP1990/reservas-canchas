@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ReservaService } from '../../application/ReservaService';
+import { FranjaHoraria } from '../../domain/FranjaHoraria';
 
 export function crearReservasRouter(reservaService: ReservaService): Router {
   const router = Router();
@@ -18,7 +19,8 @@ export function crearReservasRouter(reservaService: ReservaService): Router {
   router.post('/', (req, res) => {
     try {
       const { clienteId, canchaId, fecha, horaInicio, horaFin } = req.body;
-      const reserva = reservaService.crearReserva(clienteId, canchaId, fecha, horaInicio, horaFin);
+      const franjaHoraria = new FranjaHoraria(fecha, horaInicio, horaFin);
+      const reserva = reservaService.crearReserva(clienteId, canchaId, franjaHoraria);
       res.status(201).json(reserva);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });

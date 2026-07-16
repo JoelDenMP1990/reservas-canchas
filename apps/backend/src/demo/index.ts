@@ -5,6 +5,7 @@ import { ReservaService } from '../application/ReservaService';
 import { NotificacionService } from '../application/NotificacionService';
 import { DisponibilidadService } from '../application/DisponibilidadService';
 import { TipoCancha } from '../domain/TipoCancha';
+import { FranjaHoraria } from '../domain/FranjaHoraria';
 
 function main(): void {
   const canchaRepository = new InMemoryCanchaRepository();
@@ -29,12 +30,20 @@ function main(): void {
   console.log(cancha);
 
   console.log('\n== UC1: Crear Reserva (Cliente) — horario de baja demanda ==');
-  const reserva = reservaService.crearReserva('cliente-1', cancha.id, '2026-08-01', '07:00', '08:00');
+  const reserva = reservaService.crearReserva(
+    'cliente-1',
+    cancha.id,
+    new FranjaHoraria('2026-08-01', '07:00', '08:00'),
+  );
   console.log(reserva);
 
   console.log('\n== Intento de reserva solapada (debe fallar) ==');
   try {
-    reservaService.crearReserva('cliente-2', cancha.id, '2026-08-01', '07:30', '08:30');
+    reservaService.crearReserva(
+      'cliente-2',
+      cancha.id,
+      new FranjaHoraria('2026-08-01', '07:30', '08:30'),
+    );
   } catch (error) {
     console.log(`Error esperado: ${(error as Error).message}`);
   }
