@@ -6,6 +6,7 @@ import { CanchaService } from './application/CanchaService';
 import { ReservaService } from './application/ReservaService';
 import { NotificacionService } from './application/NotificacionService';
 import { DisponibilidadService } from './application/DisponibilidadService';
+import { SelectorEstrategiaTarifa } from './application/SelectorEstrategiaTarifa';
 import { crearCanchasRouter } from './api/routes/canchas.routes';
 import { crearReservasRouter } from './api/routes/reservas.routes';
 
@@ -13,12 +14,14 @@ const canchaRepository = new InMemoryCanchaRepository();
 const reservaRepository = new InMemoryReservaRepository();
 const notificacionService = new NotificacionService();
 const disponibilidadService = new DisponibilidadService(reservaRepository);
+const selectorEstrategiaTarifa = new SelectorEstrategiaTarifa();
 const canchaService = new CanchaService(canchaRepository);
 const reservaService = new ReservaService(
   reservaRepository,
   canchaRepository,
   notificacionService,
   disponibilidadService,
+  selectorEstrategiaTarifa,
 );
 
 const app = express();

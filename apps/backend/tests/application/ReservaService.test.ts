@@ -2,6 +2,7 @@ import { ReservaService } from '../../src/application/ReservaService';
 import { CanchaService } from '../../src/application/CanchaService';
 import { NotificacionService } from '../../src/application/NotificacionService';
 import { DisponibilidadService } from '../../src/application/DisponibilidadService';
+import { SelectorEstrategiaTarifa } from '../../src/application/SelectorEstrategiaTarifa';
 import { InMemoryCanchaRepository } from '../../src/infrastructure/repositories/InMemoryCanchaRepository';
 import { InMemoryReservaRepository } from '../../src/infrastructure/repositories/InMemoryReservaRepository';
 import { TipoCancha } from '../../src/domain/TipoCancha';
@@ -23,6 +24,7 @@ describe('ReservaService', () => {
       canchaRepository,
       new NotificacionService(),
       new DisponibilidadService(reservaRepository),
+      new SelectorEstrategiaTarifa(),
     );
   });
 

@@ -4,6 +4,7 @@ import { CanchaService } from '../application/CanchaService';
 import { ReservaService } from '../application/ReservaService';
 import { NotificacionService } from '../application/NotificacionService';
 import { DisponibilidadService } from '../application/DisponibilidadService';
+import { SelectorEstrategiaTarifa } from '../application/SelectorEstrategiaTarifa';
 import { TipoCancha } from '../domain/TipoCancha';
 import { FranjaHoraria } from '../domain/FranjaHoraria';
 
@@ -12,12 +13,14 @@ function main(): void {
   const reservaRepository = new InMemoryReservaRepository();
   const notificacionService = new NotificacionService();
   const disponibilidadService = new DisponibilidadService(reservaRepository);
+  const selectorEstrategiaTarifa = new SelectorEstrategiaTarifa();
   const canchaService = new CanchaService(canchaRepository);
   const reservaService = new ReservaService(
     reservaRepository,
     canchaRepository,
     notificacionService,
     disponibilidadService,
+    selectorEstrategiaTarifa,
   );
 
   console.log('== UC3: Registrar Cancha (Administrador) ==');
