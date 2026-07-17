@@ -23,17 +23,22 @@ export interface Reserva {
 
 async function manejarRespuesta<T>(respuesta: Response): Promise<T> {
   let datos: any = null;
+
   try {
     datos = await respuesta.json();
   } catch {
+    // Si la respuesta no es un JSON válido pero el estado de HTTP es de error (ej. 404, 500)
     if (!respuesta.ok) {
       throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté disponible.');
     }
     throw new Error('La respuesta del servidor no es válida.');
   }
+
+  // Si el JSON se parseó bien, pero el servidor devolvió un estado de error (ej. 400 Bad Request con un mensaje)
   if (!respuesta.ok) {
     throw new Error(datos?.error ?? 'Error inesperado');
   }
+
   return datos as T;
 }
 
