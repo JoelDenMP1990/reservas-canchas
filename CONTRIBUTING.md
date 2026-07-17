@@ -4,6 +4,8 @@ Esta guía es para cualquier integrante del equipo que vaya a trabajar con **edi
 (no hace falta ninguna herramienta especial). Sigue estos pasos en orden, una sola vez para
 configurar tu copia local, y luego cada vez que quieras aportar un cambio.
 
+> **Repo activo:** `https://github.com/JoelDenMP1990/reservas-canchas` — clónalo desde ahí.
+
 ## 0. Requisitos previos
 
 - Tener Git instalado (`git --version` para comprobarlo).
