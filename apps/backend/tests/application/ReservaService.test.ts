@@ -117,10 +117,13 @@ describe('ReservaService', () => {
   test('rechaza cancelar una reserva a menos de 2 horas de su inicio', () => {
     const cancha = canchaService.registrarCancha('Cancha 1', TipoCancha.FUTBOL, 40, 'Zona Norte');
     const enUnaHora = new Date(Date.now() + 60 * 60 * 1000);
-    const fecha = enUnaHora.toISOString().slice(0, 10);
-    const horaInicio = `${String(enUnaHora.getHours()).padStart(2, '0')}:${String(
-      enUnaHora.getMinutes(),
-    ).padStart(2, '0')}`;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    // Importante: fecha y hora deben construirse con componentes de la misma zona horaria
+    // (local en ambos casos). Usar toISOString() aquí para la fecha mezclaría UTC con la hora
+    // local de getHours()/getMinutes(), desfasando calcularInicioComoFecha() por el offset del
+    // huso horario de quien ejecute la prueba.
+    const fecha = `${enUnaHora.getFullYear()}-${pad(enUnaHora.getMonth() + 1)}-${pad(enUnaHora.getDate())}`;
+    const horaInicio = `${pad(enUnaHora.getHours())}:${pad(enUnaHora.getMinutes())}`;
     const horaFin = `${String((enUnaHora.getHours() + 1) % 24).padStart(2, '0')}:${String(
       enUnaHora.getMinutes(),
     ).padStart(2, '0')}`;
