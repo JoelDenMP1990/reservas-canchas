@@ -38,12 +38,164 @@ header h1 {
 }
 
 main {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.25rem;
   padding: 1.5rem 2rem;
   max-width: 1100px;
   margin: 0 auto;
+}
+
+.vista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.vista.oculta {
+  display: none;
+}
+
+#vista-canchas,
+#vista-reservar,
+#vista-mis-reservas,
+#vista-notificaciones {
+  max-width: 520px;
+}
+
+.pregunta {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.grid-modulos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.tarjeta-modulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  padding: 1.1rem;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.tarjeta-modulo:hover,
+.tarjeta-modulo:focus-visible {
+  border-color: var(--color-primario);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-modulo {
+    transition: none;
+  }
+  .tarjeta-modulo:hover,
+  .tarjeta-modulo:focus-visible {
+    transform: none;
+  }
+}
+
+.tarjeta-modulo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.icono {
+  font-size: 1.3rem;
+}
+
+.etiqueta-modulo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: 100px;
+  padding: 0.15rem 0.5rem;
+}
+
+.tarjeta-modulo h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.tarjeta-modulo p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.tarjeta-modulo-pie {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--color-borde);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.tarjeta-modulo-pie .meta {
+  color: #64748b;
+}
+
+.tarjeta-modulo-pie .cta {
+  font-weight: 600;
+  color: var(--color-primario);
+}
+
+.volver {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  color: var(--color-primario);
+  text-decoration: none;
+}
+
+.volver:hover {
+  text-decoration: underline;
+}
+
+.ayuda {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.lista-notificaciones {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lista-notificaciones li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--color-borde);
+}
+
+.lista-notificaciones li.vacio {
+  color: #64748b;
+  border-bottom: none;
+}
+
+.lista-notificaciones .hora {
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
 }
 
 .tarjeta {
