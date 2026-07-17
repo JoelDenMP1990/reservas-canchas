@@ -1,6 +1,16 @@
 stages:
+  - analyze
+  - security
   - test
   - build
+  - notify
+
+# Evita pipelines duplicados (uno por push + otro por el MR): solo se crea
+# pipeline para eventos de MR o para pushes directos a main.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 image: node:20
 
@@ -10,6 +20,65 @@ cache:
     - node_modules/
     - apps/backend/node_modules/
     - apps/frontend/node_modules/
+
+# -----------------------------------------------------------------------------
+# analyze: lee los mensajes de commit (Conventional Commits) y calcula qué tipo
+# de versión correspondería (major/minor/patch). Solo informativo — no crea
+# tags ni pushea nada.
+# -----------------------------------------------------------------------------
+analyze:
+  stage: analyze
+  image: alpine:3.20
+  variables:
+    GIT_DEPTH: "0"
+  before_script:
+    - apk add --no-cache git
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - |
+      LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+      RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
+      COMMITS=$(git log $RANGE --pretty=format:"%s")
+      if echo "$COMMITS" | grep -qE "BREAKING CHANGE|^[a-z]+(\(.+\))?!:"; then
+        BUMP="major"
+      elif echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
+        BUMP="minor"
+      elif echo "$COMMITS" | grep -qE "^fix(\(.+\))?:"; then
+        BUMP="patch"
+      else
+        BUMP="ninguno (sin feat/fix nuevos)"
+      fi
+      echo "Último tag: ${LAST_TAG:-ninguno todavía}"
+      echo "Tipo de cambio detectado desde ese tag: $BUMP"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# -----------------------------------------------------------------------------
+# security: escaneo de secretos filtrados + dependencias con vulnerabilidades
+# conocidas. Todo público (gitleaks, npm audit), corre en nuestros propios
+# runners de GitLab.com — no depende de nada externo a este repo.
+# -----------------------------------------------------------------------------
+sec:secrets-scan:
+  stage: security
+  image:
+    name: ghcr.io/gitleaks/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --no-git --redact -v
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+sec:npm-audit:
+  stage: security
+  script:
+    - npm ci
+    - npm audit --audit-level=high
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 test:
   stage: test
@@ -24,3 +93,23 @@ build:
     - npm run build
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+
+# -----------------------------------------------------------------------------
+# notify: comentario automático en el commit del MR con el resultado del
+# pipeline. Usa CI_JOB_TOKEN (propio de cada pipeline, no un token personal) y
+# la API de nuestro propio proyecto — nada sale de este repo.
+# -----------------------------------------------------------------------------
+notify:
+  stage: notify
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      curl --silent --request POST \
+        --header "PRIVATE-TOKEN: ${CI_JOB_TOKEN}" \
+        --data-urlencode "note=Pipeline #${CI_PIPELINE_ID} completado para \`${CI_COMMIT_REF_NAME}\` (analyze, security, test, build). Detalle: ${CI_PIPELINE_URL}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/commits/${CI_COMMIT_SHA}/comments"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
