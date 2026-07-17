@@ -106,7 +106,12 @@ Si no usaste el link que te dio la terminal:
 
 ## Reglas rápidas
 
-- Nunca intentes `git push` directo a `main` — está bloqueado a propósito.
+- **Nunca hagas `git push` directo a `main`.** Importante: en GitHub esto **no está bloqueado
+  técnicamente** (el plan gratuito para repos privados personales no permite activar reglas de
+  protección de rama), así que el sistema **no te va a impedir hacerlo** — es una regla de equipo,
+  no una restricción del repositorio. Si pusheas directo a `main` te saltas la revisión de código y
+  el pipeline pierde su función de filtro (igual corre, pero después de que el cambio ya está
+  aplicado). Todo cambio, sin excepción, va por rama + Pull Request.
 - Un commit por cambio lógico, no un commit gigante con todo mezclado.
 - Antes de empezar una tarea nueva, siempre `git checkout main && git pull origin main` antes de
   crear la rama, para partir de la última versión.
