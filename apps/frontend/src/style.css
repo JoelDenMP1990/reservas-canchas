@@ -1,6 +1,6 @@
 :root {
-  color-scheme: light dark;
-  --color-fondo: #f5f7fa;
+  color-scheme: light;
+  --color-fondo: #ffffff;
   --color-tarjeta: #ffffff;
   --color-texto: #1a1a2e;
   --color-borde: #d8dee9;
@@ -272,13 +272,4 @@ button:hover {
 #lista-canchas code {
   color: #64748b;
   font-size: 0.75rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-fondo: #0f172a;
-    --color-tarjeta: #1e293b;
-    --color-texto: #e2e8f0;
-    --color-borde: #334155;
-  }
 }
