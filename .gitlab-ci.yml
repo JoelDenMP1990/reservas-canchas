@@ -5,6 +5,13 @@ stages:
   - build
   - notify
 
+# Evita pipelines duplicados (uno por push + otro por el MR): solo se crea
+# pipeline para eventos de MR o para pushes directos a main.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 image: node:20
 
 cache:
