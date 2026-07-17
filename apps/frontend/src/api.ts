@@ -72,13 +72,12 @@ export const api = {
     canchaId: string;
     fecha: string;
     horaInicio: string;
-    horaFin: string;
-  }): Promise<Reserva> {
+  }) {
     return fetch(`${API_BASE}/reservas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datos),
-    }).then((r) => manejarRespuesta<Reserva>(r));
+    }).then((r) => manejarRespuesta<{ mensaje: string; reservaId?: string }>(r));
   },
 
   cancelarReserva(id: string): Promise<{ ok: boolean }> {
