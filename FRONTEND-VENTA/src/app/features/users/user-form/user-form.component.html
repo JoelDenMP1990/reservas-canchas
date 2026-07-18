@@ -1,0 +1,93 @@
+<div class="user-form">
+  <div class="page-header">
+    <h1>{{ isEditMode ? 'Editar' : 'Nuevo' }} Usuario</h1>
+    <p>{{ isEditMode ? 'Actualiza los datos del usuario' : 'Completa los datos del nuevo usuario' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="fullName">Nombre Completo *</label>
+        <input
+          type="text"
+          id="fullName"
+          formControlName="fullName"
+          placeholder="Juan Pérez"
+          [class.error]="fullName?.invalid && fullName?.touched"
+        />
+        <div class="error-message" *ngIf="fullName?.invalid && fullName?.touched">
+          <span *ngIf="fullName?.errors?.['required']">El nombre es requerido</span>
+          <span *ngIf="fullName?.errors?.['maxlength']">Máximo 255 caracteres</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Correo Electrónico *</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="usuario@empresa.com"
+          [class.error]="email?.invalid && email?.touched"
+        />
+        <div class="error-message" *ngIf="email?.invalid && email?.touched">
+          <span *ngIf="email?.errors?.['required']">El correo es requerido</span>
+          <span *ngIf="email?.errors?.['email']">Correo inválido</span>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!isEditMode">
+        <label for="password">Contraseña *</label>
+        <div class="password-input">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            placeholder="Mínimo 12 caracteres"
+            [class.error]="password?.invalid && password?.touched"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePassword()"
+          >
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <div class="error-message" *ngIf="password?.invalid && password?.touched">
+          <span *ngIf="password?.errors?.['required']">La contraseña es requerida</span>
+          <span *ngIf="password?.errors?.['minlength']">Mínimo 12 caracteres</span>
+        </div>
+        <small class="help-text">
+          Usa una contraseña fuerte con mayúsculas, minúsculas, números y símbolos.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Rol *</label>
+        <select id="role" formControlName="role">
+          <option *ngFor="let role of roles" [value]="role.value">
+            {{ role.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          <span>Usuario Activo</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Usuario
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

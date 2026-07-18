@@ -1,0 +1,112 @@
+<div class="user-list">
+  <div class="page-header">
+    <div>
+      <h1>Usuarios</h1>
+      <p>Gestión de usuarios del sistema</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/users/new">
+      ➕ Nuevo Usuario
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters">
+      <div class="search-box">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterUsers()"
+          placeholder="🔍 Buscar por nombre o email..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="selectedRole" (ngModelChange)="filterUsers()" class="filter-select">
+          <option value="">Todos los roles</option>
+          <option value="ADMIN">Administrador</option>
+          <option value="SELLER">Vendedor</option>
+          <option value="VIEWER">Visualizador</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Último Acceso</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td><strong>{{ user.fullName }}</strong></td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
+                {{ getRoleLabel(user.role) }}
+              </span>
+            </td>
+            <td>{{ user.lastLogin ? (user.lastLogin | dateFormat) : 'Nunca' }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="user.isActive" [class.badge-danger]="!user.isActive">
+                {{ user.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-primary"
+                  [routerLink]="['/users/edit', user.id]"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  class="btn-icon"
+                  [class.btn-warning]="user.isActive"
+                  [class.btn-success]="!user.isActive"
+                  (click)="toggleActive(user)"
+                  [title]="user.isActive ? 'Desactivar' : 'Activar'"
+                >
+                  {{ user.isActive ? '⏸️' : '▶️' }}
+                </button>
+                <button
+                  class="btn-icon btn-danger"
+                  (click)="confirmDelete(user)"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6" class="text-center">
+              <div class="empty-state">
+                <p>👤 No hay usuarios para mostrar</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [show]="showDeleteDialog"
+  [title]="'Eliminar Usuario'"
+  [message]="'¿Estás seguro de eliminar el usuario ' + userToDelete?.fullName + '?'"
+  [confirmText]="'Eliminar'"
+  [cancelText]="'Cancelar'"
+  (confirmed)="deleteUser()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>

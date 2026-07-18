@@ -1,0 +1,136 @@
+<div class="proforma-detail" *ngIf="proforma">
+  <div class="page-header">
+    <div>
+      <h1>Detalle de Proforma</h1>
+      <p>Información completa de la proforma {{ proforma.proformaNumber }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" routerLink="/proformas">
+        ← Volver
+      </button>
+      <button class="btn btn-info" (click)="printProforma()">
+        🖨️ Imprimir
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="info-card">
+      <h3>Información General</h3>
+      <div class="info-row">
+        <span class="label">Número:</span>
+        <strong>{{ proforma.proformaNumber }}</strong>
+      </div>
+      <div class="info-row">
+        <span class="label">Cliente:</span>
+        <strong>{{ proforma.customer?.businessName }}</strong>
+      </div>
+      <div class="info-row">
+        <span class="label">Documento:</span>
+        <span>{{ proforma.customer?.documentNumber }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Fecha Emisión:</span>
+        <span>{{ proforma.issueDate | dateFormat }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Válida Hasta:</span>
+        <span>{{ proforma.validUntil | dateFormat }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Estado:</span>
+        <span class="badge" [ngClass]="getStatusClass(proforma.status)">
+          {{ getStatusLabel(proforma.status) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3>Resumen Financiero</h3>
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <strong>{{ proforma.subtotal | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Impuesto:</span>
+        <strong>{{ proforma.tax | customCurrency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Descuento:</span>
+        <strong>-{{ proforma.discount | customCurrency }}</strong>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-row total">
+        <span>TOTAL:</span>
+        <strong>{{ proforma.total | customCurrency }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="details-card">
+    <h3>Productos</h3>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+            <th>Descuento</th>
+            <th>Subtotal</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of proforma.details">
+            <td>
+              <div class="product-info">
+                <strong>{{ detail.product?.name }}</strong>
+                <small>{{ detail.product?.code }}</small>
+              </div>
+            </td>
+            <td>{{ detail.quantity }}</td>
+            <td>{{ detail.unitPrice | customCurrency }}</td>
+            <td>{{ detail.discountPercent }}%</td>
+            <td>{{ detail.subtotal | customCurrency }}</td>
+            <td><strong>{{ detail.total | customCurrency }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="notes-card" *ngIf="proforma.notes">
+    <h3>Notas</h3>
+    <p>{{ proforma.notes }}</p>
+  </div>
+
+  <div class="terms-card" *ngIf="proforma.terms">
+    <h3>Términos y Condiciones</h3>
+    <p>{{ proforma.terms }}</p>
+  </div>
+
+  <div class="actions-card">
+    <button 
+      *ngIf="proforma.status === ProformaStatus.SENT" 
+      class="btn btn-success" 
+      (click)="approveProforma()"
+    >
+      ✓ Aprobar Proforma
+    </button>
+    <button 
+      *ngIf="proforma.status === ProformaStatus.SENT" 
+      class="btn btn-danger" 
+      (click)="rejectProforma()"
+    >
+      ✕ Rechazar Proforma
+    </button>
+    <button 
+      *ngIf="proforma.status === ProformaStatus.APPROVED" 
+      class="btn btn-primary" 
+      (click)="convertProforma()"
+    >
+      💰 Convertir a Venta
+    </button>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="inventory-adjust">
+  <div class="page-header">
+    <h1>Ajustar Stock</h1>
+    <p>Modifica el inventario de productos</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="adjustForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="productId">Producto *</label>
+        <select id="productId" formControlName="productId">
+          <option value="">Seleccione un producto</option>
+          <option *ngFor="let product of products" [value]="product.id">
+            {{ product.code }} - {{ product.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="current-stock" *ngIf="currentInventory">
+        <h3>Stock Actual</h3>
+        <div class="stock-info">
+          <div class="stock-item">
+            <span class="label">Total:</span>
+            <strong>{{ currentInventory.quantity }}</strong>
+          </div>
+          <div class="stock-item">
+            <span class="label">Reservado:</span>
+            <strong>{{ currentInventory.reservedQuantity }}</strong>
+          </div>
+          <div class="stock-item">
+            <span class="label">Disponible:</span>
+            <strong class="available">{{ currentInventory.availableQuantity }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="adjustmentType">Tipo de Ajuste *</label>
+        <select id="adjustmentType" formControlName="adjustmentType">
+          <option value="add">Agregar Stock</option>
+          <option value="subtract">Reducir Stock</option>
+          <option value="adjust">Ajustar a Cantidad Exacta</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="quantity">Cantidad *</label>
+        <input
+          type="number"
+          id="quantity"
+          formControlName="quantity"
+          step="0.01"
+          min="0"
+          placeholder="0"
+          [class.error]="quantity?.invalid && quantity?.touched"
+        />
+        <div class="error-message" *ngIf="quantity?.invalid && quantity?.touched">
+          <span *ngIf="quantity?.errors?.['required']">La cantidad es requerida</span>
+          <span *ngIf="quantity?.errors?.['min']">La cantidad debe ser mayor o igual a 0</span>
+        </div>
+        <small class="help-text" *ngIf="adjustForm.get('adjustmentType')?.value === 'add'">
+          Se agregará esta cantidad al stock actual
+        </small>
+        <small class="help-text" *ngIf="adjustForm.get('adjustmentType')?.value === 'subtract'">
+          Se restará esta cantidad del stock actual
+        </small>
+        <small class="help-text" *ngIf="adjustForm.get('adjustmentType')?.value === 'adjust'">
+          El stock total se ajustará exactamente a esta cantidad
+        </small>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : 'Ajustar Stock' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

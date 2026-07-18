@@ -1,0 +1,76 @@
+# =====================================================
+# .dockerignore - Excluir archivos del contexto Docker
+# =====================================================
+
+# Dependencias
+node_modules/
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# Tests
+coverage/
+*.spec.ts
+*.test.ts
+
+# Logs
+logs/
+*.log
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentación
+README.md
+CHANGELOG.md
+*.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Temporales
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.sql
+*.sql.gz
+backups/
+
+# Scripts de migración (ya están en el contenedor)
+migration-*.sql
+generate-*.js
+
+# Certificados (se montan como volumen)
+*.pem
+*.key
+*.crt

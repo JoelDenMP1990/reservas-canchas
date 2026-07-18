@@ -1,0 +1,93 @@
+.navbar {
+  background-color: #cbcdd1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 0 20px;
+  height: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  &-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    max-width: 1850px;
+    margin: 0 auto;
+  }
+
+  &-brand h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+
+  &-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #d4d5d9;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: #666;
+      padding: 2px 8px;
+      background-color: #e3f2fd;
+      border-radius: 12px;
+    }
+  }
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 200px;
+  display: none;
+
+  &.show {
+    display: block;
+  }
+
+  .dropdown-item {
+    font-size: 14px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      background-color: #cbcdd1;
+    }
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background-color: #cbcdd1;
+    margin: 8px 0;
+  }
+}

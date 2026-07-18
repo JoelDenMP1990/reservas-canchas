@@ -1,0 +1,94 @@
+<div class="inventory-list">
+  <div class="page-header">
+    <div>
+      <h1>Inventario</h1>
+      <p>Control de stock de productos</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/inventory/adjust">
+      📊 Ajustar Stock
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters">
+      <div class="search-box">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterInventories()"
+          placeholder="🔍 Buscar por nombre o código..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="checkbox-filter">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="showLowStockOnly"
+            (change)="toggleLowStockFilter()"
+          />
+          <span>Solo Stock Bajo</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th>Stock Total</th>
+            <th>Reservado</th>
+            <th>Disponible</th>
+            <th>Stock Mín.</th>
+            <th>Último Movimiento</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let inventory of filteredInventories">
+            <td><strong>{{ inventory.product?.code }}</strong></td>
+            <td>{{ inventory.product?.name }}</td>
+            <td>{{ inventory.quantity }}</td>
+            <td>{{ inventory.reservedQuantity }}</td>
+            <td>
+              <strong [class.text-danger]="inventory.availableQuantity <= (inventory.product?.minStock || 0)">
+                {{ inventory.availableQuantity }}
+              </strong>
+            </td>
+            <td>{{ inventory.product?.minStock || '-' }}</td>
+            <td>{{ inventory.lastMovementDate | dateFormat }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStockClass(inventory)">
+                {{ getStockStatus(inventory) }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-primary"
+                  [routerLink]="['/inventory/adjust', inventory.productId]"
+                  title="Ajustar Stock"
+                >
+                  📊
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredInventories.length === 0">
+            <td colspan="9" class="text-center">
+              <div class="empty-state">
+                <p>📋 No hay inventario para mostrar</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

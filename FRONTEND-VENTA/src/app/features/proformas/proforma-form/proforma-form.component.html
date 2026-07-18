@@ -1,0 +1,146 @@
+<div class="proforma-form">
+  <div class="page-header">
+    <h1>{{ isEditMode ? 'Editar' : 'Nueva' }} Proforma</h1>
+    <p>{{ isEditMode ? 'Actualiza los datos de la proforma' : 'Completa los datos de la nueva proforma' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="proformaForm" (ngSubmit)="onSubmit()">
+      
+      <h3 class="section-title">Información General</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="proformaNumber">Número de Proforma *</label>
+          <input type="text" id="proformaNumber" formControlName="proformaNumber" placeholder="PRO-2024-001" />
+        </div>
+
+        <div class="form-group">
+          <label for="customerId">Cliente *</label>
+          <select id="customerId" formControlName="customerId">
+            <option value="">Seleccione un cliente</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">
+              {{ customer.businessName }} - {{ customer.documentNumber }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="issueDate">Fecha de Emisión *</label>
+          <input type="date" id="issueDate" formControlName="issueDate" />
+        </div>
+
+        <div class="form-group">
+          <label for="validUntil">Válida Hasta *</label>
+          <input type="date" id="validUntil" formControlName="validUntil" />
+        </div>
+      </div>
+
+      <h3 class="section-title">Detalles de Productos</h3>
+
+      <div formArrayName="details">
+        <div *ngFor="let detail of details.controls; let i = index" [formGroupName]="i" class="detail-row">
+          <div class="detail-card">
+            <div class="detail-header">
+              <h4>Producto {{ i + 1 }}</h4>
+              <button type="button" class="btn-remove" (click)="removeDetail(i)" [disabled]="details.length === 1">✕</button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label>Producto *</label>
+                <select formControlName="productId" (change)="onProductChange(i)">
+                  <option value="">Seleccione un producto</option>
+                  <option *ngFor="let product of products" [value]="product.id">
+                    {{ product.code }} - {{ product.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Cantidad *</label>
+                <input type="number" formControlName="quantity" step="0.01" min="0.01" placeholder="1" />
+              </div>
+
+              <div class="form-group">
+                <label>Precio Unitario *</label>
+                <input type="number" formControlName="unitPrice" step="0.01" min="0" placeholder="0.00" />
+              </div>
+
+              <div class="form-group">
+                <label>Descuento %</label>
+                <input type="number" formControlName="discountPercent" step="0.01" min="0" max="100" placeholder="0" />
+              </div>
+
+              <div class="form-group">
+                <label>Total</label>
+                <div class="total-display">{{ calculateDetailTotal(i) | customCurrency }}</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Notas</label>
+              <input type="text" formControlName="notes" placeholder="Notas adicionales..." />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary btn-add" (click)="addDetail()">➕ Agregar Producto</button>
+
+      <h3 class="section-title">Cálculos y Observaciones</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tax">Impuesto %</label>
+          <input type="number" id="tax" formControlName="tax" step="0.01" min="0" placeholder="12" />
+        </div>
+
+        <div class="form-group">
+          <label for="discount">Descuento General</label>
+          <input type="number" id="discount" formControlName="discount" step="0.01" min="0" placeholder="0.00" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notas de la Proforma</label>
+        <textarea id="notes" formControlName="notes" rows="2" placeholder="Observaciones..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="terms">Términos y Condiciones</label>
+        <textarea id="terms" formControlName="terms" rows="3" placeholder="Términos y condiciones de la proforma..."></textarea>
+      </div>
+
+      <div class="summary-card">
+        <h3>Resumen de Proforma</h3>
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <strong>{{ calculateSubtotal() | customCurrency }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Impuesto ({{ proformaForm.get('tax')?.value }}%):</span>
+          <strong>{{ calculateTax() | customCurrency }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Descuento:</span>
+          <strong>-{{ proformaForm.get('discount')?.value | customCurrency }}</strong>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row total">
+          <span>TOTAL:</span>
+          <strong>{{ calculateTotal() | customCurrency }}</strong>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Proforma
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

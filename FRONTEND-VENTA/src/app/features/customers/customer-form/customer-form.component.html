@@ -1,0 +1,164 @@
+<div class="customer-form">
+  <div class="page-header">
+    <h1>{{ isEditMode ? 'Editar' : 'Nuevo' }} Cliente</h1>
+    <p>{{ isEditMode ? 'Actualiza los datos del cliente' : 'Completa los datos del nuevo cliente' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+      
+      <h3 class="section-title">Información de Identificación</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="documentType">Tipo de Documento *</label>
+          <select id="documentType" formControlName="documentType">
+            <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="documentNumber">Número de Documento *</label>
+          <input
+            type="text"
+            id="documentNumber"
+            formControlName="documentNumber"
+            placeholder="1234567890001"
+            [class.error]="documentNumber?.invalid && documentNumber?.touched"
+          />
+          <div class="error-message" *ngIf="documentNumber?.invalid && documentNumber?.touched">
+            <span *ngIf="documentNumber?.errors?.['required']">El documento es requerido</span>
+            <span *ngIf="documentNumber?.errors?.['maxlength']">Máximo 50 caracteres</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="businessName">Razón Social / Nombre *</label>
+        <input
+          type="text"
+          id="businessName"
+          formControlName="businessName"
+          placeholder="Nombre de la empresa o persona"
+          [class.error]="businessName?.invalid && businessName?.touched"
+        />
+        <div class="error-message" *ngIf="businessName?.invalid && businessName?.touched">
+          <span *ngIf="businessName?.errors?.['required']">La razón social es requerida</span>
+          <span *ngIf="businessName?.errors?.['maxlength']">Máximo 255 caracteres</span>
+        </div>
+      </div>
+
+      <h3 class="section-title">Información de Contacto</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contactName">Nombre de Contacto</label>
+          <input
+            type="text"
+            id="contactName"
+            formControlName="contactName"
+            placeholder="Juan Pérez"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="contacto@empresa.com"
+            [class.error]="email?.invalid && email?.touched"
+          />
+          <div class="error-message" *ngIf="email?.invalid && email?.touched">
+            <span *ngIf="email?.errors?.['email']">Email inválido</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone">Teléfono</label>
+          <input
+            type="tel"
+            id="phone"
+            formControlName="phone"
+            placeholder="0987654321"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="creditLimit">Límite de Crédito</label>
+          <input
+            type="number"
+            id="creditLimit"
+            formControlName="creditLimit"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      <h3 class="section-title">Dirección</h3>
+
+      <div class="form-group">
+        <label for="address">Dirección</label>
+        <textarea
+          id="address"
+          formControlName="address"
+          rows="2"
+          placeholder="Av. Principal 123..."
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">Ciudad</label>
+          <input
+            type="text"
+            id="city"
+            formControlName="city"
+            placeholder="Guayaquil"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="state">Provincia/Estado</label>
+          <input
+            type="text"
+            id="state"
+            formControlName="state"
+            placeholder="Guayas"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="country">País</label>
+          <input
+            type="text"
+            id="country"
+            formControlName="country"
+            placeholder="Ecuador"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          <span>Cliente Activo</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }} Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
