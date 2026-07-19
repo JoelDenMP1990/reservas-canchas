@@ -1,0 +1,21 @@
+{
+  "name": "sistema-canchas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de reservas de canchas deportivas — proyecto académico (UML 4+1, OO, refactorización). Monorepo: backend (API NestJS) + frontend (UI Angular).",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=backend",
+    "build": "npm run build --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "seed": "npm run seed --workspace=backend"
+  },
+  "overrides": {
+    "rxjs": "7.8.2"
+  },
+  "license": "UNLICENSED"
+}
