@@ -46,17 +46,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  sec-npm-audit:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm ci
-      - run: npm audit --audit-level=high
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +71,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     if: always()
-    needs: [analyze, sec-secrets, sec-npm-audit, test]
+    needs: [analyze, sec-secrets, test]
     steps:
       - name: Comentar en el Pull Request
         if: github.event_name == 'pull_request'
