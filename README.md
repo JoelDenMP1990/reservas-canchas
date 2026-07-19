@@ -112,9 +112,9 @@ Corre la suite de Jest del backend (pruebas simples y directas sobre las entidad
 
 | Rol | Integrante |
 |-----|------------|
+| Coordinador/a | Jhonatan Moran |
 | Coordinador/a | Adriana Martínez |
 | Admin | Josué Jiménez |
-| Integrante | Jhonatan Moran |
 | Integrante | Bryan Cabrera |
 | Integrante | Dimas Duque |
 | Integrante | Dayana Guilcaso |
