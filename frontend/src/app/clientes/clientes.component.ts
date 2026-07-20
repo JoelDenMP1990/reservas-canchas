@@ -9,75 +9,92 @@ import { Cliente, ClientesService } from './clientes.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="tarjeta animate-fade-in">
-      <h2>
-        <i class="icono">👤</i> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
-      </h2>
-      <form (ngSubmit)="guardar()">
-        <div class="campo-grupo">
-          <label>Nombre</label>
-          <input name="nombre" [(ngModel)]="formulario.nombre" placeholder="Ej. Juan Pérez" required />
-        </div>
-        
-        <div class="campo-grupo">
-          <label>Email</label>
-          <input name="email" type="email" [(ngModel)]="formulario.email" placeholder="juan@correo.com" required />
-        </div>
-        
-        <div class="campo-grupo">
-          <label>Teléfono</label>
-          <input name="telefono" [(ngModel)]="formulario.telefono" placeholder="Ej. 0999999999" />
-        </div>
-        
-        <div class="botones-container">
-          <button type="submit" class="btn btn-guardar">
-            {{ editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente' }}
-          </button>
-          <button type="button" class="btn btn-cancelar" *ngIf="editandoId" (click)="cancelarEdicion()">
-            ❌ Cancelar
-          </button>
-        </div>
-      </form>
-      
-      <div *ngIf="mensaje" class="mensaje" [class]="mensajeTipo">
-        {{ mensaje }}
-      </div>
-    </div>
-
-    <div class="tarjeta animate-fade-in">
-      <h2><i class="icono">📋</i> Clientes Registrados</h2>
-      
-      <div *ngIf="clientes.length === 0" class="sin-datos">
-        No hay clientes registrados en la base de datos.
-      </div>
-
-      <ul class="lista-clientes">
-        <li *ngFor="let c of clientes" class="item-cliente">
-          <div class="info-cliente">
-            <span class="nombre-cliente">{{ c.nombre }}</span>
-            <span class="detalle-cliente">📧 {{ c.email }}</span>
-            <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
-            
-            <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
-              📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
-            </div>
+    <div class="contenedor-clientes">
+      <!-- COLUMNA 1: FORMULARIO -->
+      <div class="tarjeta animate-fade-in">
+        <h2>
+          <i class="icono">👤</i> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
+        </h2>
+        <form (ngSubmit)="guardar()">
+          <div class="campo-grupo">
+            <label>Nombre</label>
+            <input name="nombre" [(ngModel)]="formulario.nombre" placeholder="Ej. Juan Pérez" required />
           </div>
           
-          <div class="acciones-cliente">
-            <button type="button" class="btn-accion btn-editar" title="Editar" (click)="editar(c)">✏️</button>
-            <button type="button" class="btn-accion btn-info" title="Ver Reservas" (click)="verReservasActivas(c)">📅</button>
-            <button type="button" class="btn-accion btn-borrar" title="Borrar" (click)="eliminar(c.id)">🗑️</button>
+          <div class="campo-grupo">
+            <label>Email</label>
+            <input name="email" type="email" [(ngModel)]="formulario.email" placeholder="juan@correo.com" required />
           </div>
-        </li>
-      </ul>
+          
+          <div class="campo-grupo">
+            <label>Teléfono</label>
+            <input name="telefono" [(ngModel)]="formulario.telefono" placeholder="Ej. 0999999999" />
+          </div>
+          
+          <div class="botones-container">
+            <button type="submit" class="btn btn-guardar">
+              {{ editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente' }}
+            </button>
+            <button type="button" class="btn btn-cancelar" *ngIf="editandoId" (click)="cancelarEdicion()">
+              ❌ Cancelar
+            </button>
+          </div>
+        </form>
+        
+        <div *ngIf="mensaje" class="mensaje" [class]="mensajeTipo">
+          {{ mensaje }}
+        </div>
+      </div>
+
+      <!-- COLUMNA 2: LISTA DE CLIENTES -->
+      <div class="tarjeta animate-fade-in">
+        <h2><i class="icono">📋</i> Clientes Registrados</h2>
+        
+        <div *ngIf="clientes.length === 0" class="sin-datos">
+          No hay clientes registrados en la base de datos.
+        </div>
+
+        <ul class="lista-clientes">
+          <li *ngFor="let c of clientes" class="item-cliente">
+            <div class="info-cliente">
+              <span class="nombre-cliente">{{ c.nombre }}</span>
+              <span class="detalle-cliente">📧 {{ c.email }}</span>
+              <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
+              
+              <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
+                📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
+              </div>
+            </div>
+            
+            <div class="acciones-cliente">
+              <button type="button" class="btn-accion btn-editar" title="Editar" (click)="editar(c)">✏️</button>
+              <button type="button" class="btn-accion btn-info" title="Ver Reservas" (click)="verReservasActivas(c)">📅</button>
+              <button type="button" class="btn-accion btn-borrar" title="Borrar" (click)="eliminar(c.id)">🗑️</button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   `,
   styles: [`
+    /* Layout principal de 2 columnas */
+    .contenedor-clientes {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 992px) {
+      .contenedor-clientes {
+        grid-template-columns: 1fr 1.5fr;
+        align-items: start;
+      }
+    }
+
     .tarjeta {
       background: #ffffff;
       border-radius: 12px;
       padding: 24px;
-      margin-bottom: 25px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
       border: 1px solid #e2e8f0;
     }
@@ -141,6 +158,7 @@ import { Cliente, ClientesService } from './clientes.service';
     .btn-guardar {
       background: #14452F;
       color: white;
+      width: 100%;
     }
 
     .btn-guardar:hover {
