@@ -199,7 +199,7 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .item-cliente:hover {
-      background-color: #f8fafc
+      background-color: #f8fafc;
     }
 
     .info-cliente {
