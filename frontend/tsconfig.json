@@ -2,6 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitOverride": true,
     "skipLibCheck": true,
@@ -15,6 +16,9 @@
     "module": "ES2022",
     "lib": ["ES2022", "dom"]
   },
+  "include": [
+    "src/**/*"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
