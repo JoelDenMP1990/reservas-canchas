@@ -1,0 +1,75 @@
+DIAGRAMA DE CLASES - SISTEMA DE RESERVAS DE CANCHAS
+=====================================================
+
+CLIENTE
+-----------------------------------------------------
+- id: String
+- nombre: String
+- email: String
+- telefono: String
+-----------------------------------------------------
++ Cliente(nombre, email)
++ getReservasActivas(): List
+
+ADMINISTRADOR
+-----------------------------------------------------
+- id: String
+- nombre: String
+- areaAsignada: String
+-----------------------------------------------------
++ Administrador(nombre, area)
++ registrarCancha(c): void
++ eliminarCancha(c): void
++ reporteOcupacion(): String
+
+CANCHA
+-----------------------------------------------------
+- id: String
+- nombre: String
+- tipo: String
+- tarifaBasePorHora: BigDecimal
+- activa: boolean
+- horaAperturaDesde: Time
+- horaCierreHasta: Time
+-----------------------------------------------------
++ estaDisponible(): boolean
++ getTarifaBase(): BigDecimal
++ esGratuita(): boolean
+
+RESERVA
+-----------------------------------------------------
+- id: String
+- estado: String
+- horaInicio: LocalDateTime
+- horaFin: LocalDateTime
+- creadaEn: LocalDateTime
+- monto: BigDecimal
+-----------------------------------------------------
++ confirmar(): void
++ cancelar(): void
++ calcularPrecio(): BigDecimal
+
+PAGO
+-----------------------------------------------------
+- monto: BigDecimal
+- metodoPago: String
+- procesadoEn: LocalDateTime
+- id: String
+-----------------------------------------------------
++ procesar(): boolean
+
+=====================================================
+RELACIONES
+=====================================================
+
+Un Cliente puede realizar muchas Reservas (o ninguna).
+Cada Reserva belongs a un solo Cliente.
+
+Un Administrador puede registrar muchas Canchas (o ninguna).
+Cada Cancha fue registrada por un solo Administrador.
+
+Una Cancha puede tener muchas Reservas (o ninguna).
+Cada Reserva es sobre una sola Cancha.
+
+Una Reserva puede tener un Pago o ninguno todavía.
+Cada Pago pertenece a una sola Reserva.
