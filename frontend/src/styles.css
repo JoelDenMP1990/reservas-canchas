@@ -65,3 +65,10 @@ button {
 .mensaje.error {
   color: #b3261e;
 }
+/* Centrar el contenido de las pantallas del proyecto */
+app-clientes {
+  display: block;
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
