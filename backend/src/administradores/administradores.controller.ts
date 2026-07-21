@@ -13,6 +13,11 @@ export class AdministradoresController {
     return this.administradoresService.listar();
   }
 
+  @Get(':id/canchas')
+  listarCanchas(@Param('id') id: string) {
+    return this.administradoresService.listarCanchas(id);
+  }
+
   @Get(':id')
   obtenerPorId(@Param('id') id: string) {
     return this.administradoresService.obtenerPorId(id);

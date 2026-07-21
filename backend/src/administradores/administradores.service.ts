@@ -71,4 +71,16 @@ export class AdministradoresService {
     const activas = canchas.filter((c) => c.activa).length;
     return `${canchas.length} canchas registradas, ${activas} activas`;
   }
+  async listarCanchas(administradorId: string): Promise<Cancha[]> {
+  await this.obtenerPorId(administradorId);
+
+  return this.canchasRepository.find({
+    where: {
+      administrador: {
+        id: administradorId,
+      },
+    },
+  });
 }
+}
+
