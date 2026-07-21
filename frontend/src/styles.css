@@ -1,0 +1,92 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f5f5f5;
+  color: #222;
+}
+
+header {
+  background: #1b4332;
+  color: white;
+  padding: 1rem 1.5rem;
+}
+
+nav a {
+  margin-right: 1rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+nav a.activo {
+  text-decoration: underline;
+}
+
+main {
+  max-width: 1200px; /* Expandido para dar espacio al grid */
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.tarjeta {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+form input,
+form select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px; /* Bordes suaves */
+  margin-top: 0.25rem;
+}
+
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: #1b4332;
+  box-shadow: 0 0 0 2px rgba(27, 67, 50, 0.15);
+}
+
+button {
+  background: #1b4332;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background: #143326;
+}
+
+.mensaje.exito {
+  color: #1b4332;
+}
+
+.mensaje.error {
+  color: #b3261e;
+}
+
+/* Centrar el contenido de la pantalla de Clientes */
+app-clientes {
+  display: block;
+  max-width: 1200px; /* Ampliado para permitir 2 columnas */
+  margin: 30px auto;
+  padding: 0 20px;
+}
