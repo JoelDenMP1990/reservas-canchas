@@ -119,3 +119,4 @@ Corre la suite de Jest del backend (pruebas simples y directas sobre las entidad
 | Integrante | Dimas Duque |
 | Integrante | Dayana Guilcaso |
 | Integrante | Leonardo Reyes |
+| Integrante | Ely Troya |
