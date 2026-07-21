@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs';
 import { Cliente, ClientesService } from './clientes.service';
 
 // Pantalla CRUD de Cliente: listar, crear, editar, borrar.
@@ -9,92 +10,75 @@ import { Cliente, ClientesService } from './clientes.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="contenedor-clientes">
-      <!-- COLUMNA 1: FORMULARIO -->
-      <div class="tarjeta animate-fade-in">
-        <h2>
-          <i class="icono">👤</i> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
-        </h2>
-        <form (ngSubmit)="guardar()">
-          <div class="campo-grupo">
-            <label>Nombre</label>
-            <input name="nombre" [(ngModel)]="formulario.nombre" placeholder="Ej. Juan Pérez" required />
-          </div>
-          
-          <div class="campo-grupo">
-            <label>Email</label>
-            <input name="email" type="email" [(ngModel)]="formulario.email" placeholder="juan@correo.com" required />
-          </div>
-          
-          <div class="campo-grupo">
-            <label>Teléfono</label>
-            <input name="telefono" [(ngModel)]="formulario.telefono" placeholder="Ej. 0999999999" />
-          </div>
-          
-          <div class="botones-container">
-            <button type="submit" class="btn btn-guardar">
-              {{ editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente' }}
-            </button>
-            <button type="button" class="btn btn-cancelar" *ngIf="editandoId" (click)="cancelarEdicion()">
-              ❌ Cancelar
-            </button>
-          </div>
-        </form>
-        
-        <div *ngIf="mensaje" class="mensaje" [class]="mensajeTipo">
-          {{ mensaje }}
+    <div class="tarjeta animate-fade-in">
+      <h2>
+        <i class="icono">👤</i> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
+      </h2>
+      <form (ngSubmit)="guardar()">
+        <div class="campo-grupo">
+          <label>Nombre</label>
+          <input name="nombre" [(ngModel)]="formulario.nombre" placeholder="Ej. Juan Pérez" required />
         </div>
+        
+        <div class="campo-grupo">
+          <label>Email</label>
+          <input name="email" type="email" [(ngModel)]="formulario.email" placeholder="juan@correo.com" required />
+        </div>
+        
+        <div class="campo-grupo">
+          <label>Teléfono</label>
+          <input name="telefono" [(ngModel)]="formulario.telefono" placeholder="Ej. 0999999999" />
+        </div>
+        
+        <div class="botones-container">
+          <button type="submit" class="btn btn-guardar">
+            {{ editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente' }}
+          </button>
+          <button type="button" class="btn btn-cancelar" *ngIf="editandoId" (click)="cancelarEdicion()">
+            ❌ Cancelar
+          </button>
+        </div>
+      </form>
+      
+      <div *ngIf="mensaje" class="mensaje" [class]="mensajeTipo">
+        {{ mensaje }}
+      </div>
+    </div>
+
+    <div class="tarjeta animate-fade-in">
+      <h2><i class="icono">📋</i> Clientes Registrados</h2>
+      
+      <div *ngIf="clientes.length === 0" class="sin-datos">
+        No hay clientes registrados en la base de datos.
       </div>
 
-      <!-- COLUMNA 2: LISTA DE CLIENTES -->
-      <div class="tarjeta animate-fade-in">
-        <h2><i class="icono">📋</i> Clientes Registrados</h2>
-        
-        <div *ngIf="clientes.length === 0" class="sin-datos">
-          No hay clientes registrados en la base de datos.
-        </div>
-
-        <ul class="lista-clientes">
-          <li *ngFor="let c of clientes" class="item-cliente">
-            <div class="info-cliente">
-              <span class="nombre-cliente">{{ c.nombre }}</span>
-              <span class="detalle-cliente">📧 {{ c.email }}</span>
-              <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
-              
-              <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
-                📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
-              </div>
-            </div>
+      <ul class="lista-clientes">
+        <li *ngFor="let c of clientes" class="item-cliente">
+          <div class="info-cliente">
+            <span class="nombre-cliente">{{ c.nombre }}</span>
+            <span class="detalle-cliente">📧 {{ c.email }}</span>
+            <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
             
-            <div class="acciones-cliente">
-              <button type="button" class="btn-accion btn-editar" title="Editar" (click)="editar(c)">✏️</button>
-              <button type="button" class="btn-accion btn-info" title="Ver Reservas" (click)="verReservasActivas(c)">📅</button>
-              <button type="button" class="btn-accion btn-borrar" title="Borrar" (click)="eliminar(c.id)">🗑️</button>
+            <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
+              📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
             </div>
-          </li>
-        </ul>
-      </div>
+          </div>
+          
+          <div class="acciones-cliente">
+            <button type="button" class="btn-accion btn-editar" title="Editar" (click)="editar(c)">✏️</button>
+            <button type="button" class="btn-accion btn-info" title="Ver Reservas" (click)="verReservasActivas(c)">📅</button>
+            <button type="button" class="btn-accion btn-borrar" title="Borrar" (click)="eliminar(c.id)">🗑️</button>
+          </div>
+        </li>
+      </ul>
     </div>
   `,
   styles: [`
-    /* Layout principal de 2 columnas */
-    .contenedor-clientes {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 992px) {
-      .contenedor-clientes {
-        grid-template-columns: 1fr 1.5fr;
-        align-items: start;
-      }
-    }
-
     .tarjeta {
       background: #ffffff;
       border-radius: 12px;
       padding: 24px;
+      margin-bottom: 25px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
       border: 1px solid #e2e8f0;
     }
@@ -158,7 +142,6 @@ import { Cliente, ClientesService } from './clientes.service';
     .btn-guardar {
       background: #14452F;
       color: white;
-      width: 100%;
     }
 
     .btn-guardar:hover {
@@ -281,6 +264,8 @@ import { Cliente, ClientesService } from './clientes.service';
   `]
 })
 export class ClientesComponent implements OnInit {
+  private readonly clientesService = inject(ClientesService);
+
   clientes: Cliente[] = [];
   formulario: Partial<Cliente> = { nombre: '', email: '', telefono: '' };
   editandoId: string | null = null;
@@ -288,14 +273,15 @@ export class ClientesComponent implements OnInit {
   mensajeTipo = '';
   reservasActivasPorCliente: Record<string, any[]> = {};
 
-  constructor(private readonly clientesService: ClientesService) {}
-
   ngOnInit(): void {
     this.refrescar();
   }
 
   refrescar(): void {
-    this.clientesService.listar().subscribe((clientes) => (this.clientes = clientes));
+    this.clientesService
+      .listar()
+      .pipe(take(1))
+      .subscribe((clientes) => (this.clientes = clientes));
   }
 
   guardar(): void {
@@ -303,7 +289,7 @@ export class ClientesComponent implements OnInit {
       ? this.clientesService.editar(this.editandoId, this.formulario)
       : this.clientesService.crear(this.formulario);
 
-    operacion.subscribe({
+    operacion.pipe(take(1)).subscribe({
       next: () => {
         this.mensaje = this.editandoId ? '¡Cliente actualizado con éxito!' : '¡Cliente registrado con éxito!';
         this.mensajeTipo = 'exito';
@@ -311,18 +297,7 @@ export class ClientesComponent implements OnInit {
         this.refrescar();
       },
       error: (error) => {
-        let mensajeError = error.error?.message ?? 'No se pudo guardar el cliente.';
-        
-        if (Array.isArray(mensajeError)) {
-          mensajeError = mensajeError.join(', ');
-        }
-        
-        mensajeError = mensajeError
-          .replace('nombre should not be empty', 'El nombre no puede estar vacío')
-          .replace('email must be an email', 'El correo electrónico debe ser válido')
-          .replace('Internal server error', 'Error del servidor. Asegúrate de ingresar un teléfono válido (solo números).');
-
-        this.mensaje = mensajeError;
+        this.mensaje = this.formatearMensajeError(error);
         this.mensajeTipo = 'error';
       },
     });
@@ -331,7 +306,7 @@ export class ClientesComponent implements OnInit {
   editar(cliente: Cliente): void {
     this.editandoId = cliente.id;
     this.formulario = { nombre: cliente.nombre, email: cliente.email, telefono: cliente.telefono };
-    this.mensaje = ''; 
+    this.mensaje = '';
   }
 
   cancelarEdicion(): void {
@@ -341,17 +316,36 @@ export class ClientesComponent implements OnInit {
 
   eliminar(id: string): void {
     if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
-      this.clientesService.eliminar(id).subscribe(() => {
-        this.mensaje = 'Cliente eliminado correctamente.';
-        this.mensajeTipo = 'exito';
-        this.refrescar();
-      });
+      this.clientesService
+        .eliminar(id)
+        .pipe(take(1))
+        .subscribe(() => {
+          this.mensaje = 'Cliente eliminado correctamente.';
+          this.mensajeTipo = 'exito';
+          this.refrescar();
+        });
     }
   }
 
   verReservasActivas(cliente: Cliente): void {
-    this.clientesService.getReservasActivas(cliente.id).subscribe((reservas) => {
-      this.reservasActivasPorCliente[cliente.id] = reservas;
-    });
+    this.clientesService
+      .getReservasActivas(cliente.id)
+      .pipe(take(1))
+      .subscribe((reservas) => {
+        this.reservasActivasPorCliente[cliente.id] = reservas;
+      });
+  }
+
+  private formatearMensajeError(error: any): string {
+    let mensajeError = error?.error?.message ?? 'No se pudo guardar el cliente.';
+
+    if (Array.isArray(mensajeError)) {
+      mensajeError = mensajeError.join(', ');
+    }
+
+    return mensajeError
+      .replace('nombre should not be empty', 'El nombre no puede estar vacío')
+      .replace('email must be an email', 'El correo electrónico debe ser válido')
+      .replace('Internal server error', 'Error del servidor. Asegúrate de ingresar un teléfono válido (solo números).');
   }
 }
