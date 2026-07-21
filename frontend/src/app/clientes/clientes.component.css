@@ -1,0 +1,108 @@
+/* 3. Formulario y cuadrícula */
+form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.campo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-grupo label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Inputs mejorados */
+.campo-grupo input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.campo-grupo input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Botón de Guardar/Registrar */
+form button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: start;
+  background-color: #064e3b;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+form button[type="submit"]:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+/* 4. Lista de clientes y elementos */
+.cliente-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.cliente-item:hover {
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.cliente-info .nombre {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.cliente-info .detalles {
+  font-size: 0.875rem;
+  color: #64748b;
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+/* Botones de acción */
+.acciones-btn {
+  display: flex;
+  gap: 8px;
+}
+
+.acciones-btn button {
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.btn-editar:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.btn-eliminar:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
