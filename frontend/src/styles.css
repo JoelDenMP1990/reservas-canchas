@@ -88,8 +88,6 @@ button:hover {
   color: #b3261e;
 }
 
-<<<<<<< HEAD
-=======
 .linea-tiempo {
   list-style: none;
   margin: 0;
@@ -150,7 +148,6 @@ button:hover {
 }
 
 /* Centrar el contenido de la pantalla de Clientes */
->>>>>>> 4bda4206ace32db41a08e0b76690d909a3684b2f
 app-clientes {
   display: block;
   max-width: 1200px;
