@@ -3,6 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Administrador, AdministradoresService } from './administradores.service';
 
+interface FranjaHoraria {
+inicio: string;
+fin: string;
+ocupada: boolean;
+}
+
 interface CanchaAdministrador {
 id: string;
 nombre: string;
@@ -11,7 +17,7 @@ tarifaBasePorHora: number;
 activa: boolean;
 horaAperturaDesde: string;
 horaCierreHasta: string;
-ocupadaAhora: boolean;
+horarios: FranjaHoraria[];
 }
 
 @Component({
@@ -195,17 +201,15 @@ template: `
   </p>
 
   <div class="leyenda">
-    <span class="punto libre"></span> Libre ahora
-    <span class="punto ocupada"></span> Ocupada ahora
-    <span class="punto inactiva"></span> Inactiva
+    <span class="punto libre"></span> Horario libre
+    <span class="punto ocupada"></span> Horario ocupado
+    <span class="punto inactiva"></span> Cancha inactiva
   </div>
 
   <div class="grilla-canchas">
     <div
       *ngFor="let cancha of canchas"
       class="celda-cancha"
-      [class.libre]="cancha.activa && !cancha.ocupadaAhora"
-      [class.ocupada]="cancha.activa && cancha.ocupadaAhora"
       [class.inactiva]="!cancha.activa"
     >
       <h4>{{ cancha.nombre }}</h4>
@@ -225,9 +229,19 @@ template: `
         {{ cancha.horaCierreHasta }}
       </p>
 
-      <p class="etiqueta-estado">
-        {{ !cancha.activa ? 'Inactiva' : (cancha.ocupadaAhora ? 'Ocupada ahora' : 'Libre ahora') }}
-      </p>
+      <p *ngIf="!cancha.activa" class="etiqueta-estado">Inactiva</p>
+
+      <div class="franjas" *ngIf="cancha.activa">
+        <span
+          *ngFor="let franja of cancha.horarios"
+          class="franja"
+          [class.ocupada]="franja.ocupada"
+          [class.libre]="!franja.ocupada"
+          [title]="franja.inicio + ' - ' + franja.fin"
+        >
+          {{ franja.inicio }}
+        </span>
+      </div>
 
       <button
         type="button"
@@ -276,20 +290,13 @@ styles: [`
   .celda-cancha {
     border-radius: 10px;
     padding: 1rem;
-    border: 2px solid transparent;
-    color: #fff;
-  }
-
-  .celda-cancha.libre {
-    background-color: #16a34a;
-  }
-
-  .celda-cancha.ocupada {
-    background-color: #dc2626;
+    border: 2px solid #e2e8f0;
+    background-color: #f8fafc;
   }
 
   .celda-cancha.inactiva {
     background-color: #6b7280;
+    color: #fff;
   }
 
   .celda-cancha h4,
@@ -300,6 +307,28 @@ styles: [`
   .celda-cancha button {
     margin-top: 0.5rem;
     margin-right: 0.4rem;
+  }
+
+  .franjas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+  }
+
+  .franja {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    color: #fff;
+  }
+
+  .franja.libre {
+    background-color: #16a34a;
+  }
+
+  .franja.ocupada {
+    background-color: #dc2626;
   }
 
   .leyenda {
