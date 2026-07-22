@@ -6,6 +6,15 @@ import { CrearAdministradorDto } from './dto/crear-administrador.dto';
 import { EditarAdministradorDto } from './dto/editar-administrador.dto';
 import { RegistrarCanchaDto } from './dto/registrar-cancha.dto';
 import { Cancha } from '../canchas/cancha.entity';
+import { Reserva } from '../reservas/reserva.entity';
+
+export interface FranjaHoraria {
+  inicio: string;
+  fin: string;
+  ocupada: boolean;
+}
+
+export type CanchaConHorarios = Cancha & { horarios: FranjaHoraria[] };
 
 @Injectable()
 export class AdministradoresService {
@@ -14,6 +23,8 @@ export class AdministradoresService {
     private readonly administradoresRepository: Repository<Administrador>,
     @InjectRepository(Cancha)
     private readonly canchasRepository: Repository<Cancha>,
+    @InjectRepository(Reserva)
+    private readonly reservasRepository: Repository<Reserva>,
   ) {}
 
   listar(): Promise<Administrador[]> {
@@ -71,16 +82,57 @@ export class AdministradoresService {
     const activas = canchas.filter((c) => c.activa).length;
     return `${canchas.length} canchas registradas, ${activas} activas`;
   }
-  async listarCanchas(administradorId: string): Promise<Cancha[]> {
-  await this.obtenerPorId(administradorId);
+  // listarCanchas(): las canchas del administrador, con el horario de hoy partido en
+  // franjas de 1 hora (entre apertura y cierre), cada una marcada libre u ocupada
+  // según si una reserva CONFIRMADA de hoy la cubre.
+  async listarCanchas(administradorId: string): Promise<CanchaConHorarios[]> {
+    await this.obtenerPorId(administradorId);
 
-  return this.canchasRepository.find({
-    where: {
-      administrador: {
-        id: administradorId,
-      },
-    },
-  });
-}
+    const canchas = await this.canchasRepository.find({
+      where: { administrador: { id: administradorId } },
+    });
+
+    const canchasConHorarios: CanchaConHorarios[] = [];
+    for (const cancha of canchas) {
+      const reservasDeHoy = await this.reservasRepository.find({
+        where: { cancha: { id: cancha.id }, estado: 'CONFIRMADA' },
+      });
+      const horarios = this.generarFranjas(cancha, reservasDeHoy);
+      canchasConHorarios.push(Object.assign(cancha, { horarios }));
+    }
+    return canchasConHorarios;
+  }
+
+  // generarFranjas(): parte en bloques de 1 hora el horario de la cancha que todavía
+  // queda por delante hoy (desde la hora actual, no desde la apertura), marcando cada
+  // bloque como ocupado si se cruza con alguna reserva confirmada. Las horas que ya
+  // pasaron no se muestran: no aportan nada para decidir si se puede reservar o no.
+  private generarFranjas(cancha: Cancha, reservas: Reserva[]): FranjaHoraria[] {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const ahora = new Date();
+    const [horaApertura, minutoApertura] = cancha.horaAperturaDesde.split(':').map(Number);
+    const [horaCierre, minutoCierre] = cancha.horaCierreHasta.split(':').map(Number);
+
+    const apertura = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), horaApertura, minutoApertura);
+    const cierre = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), horaCierre, minutoCierre);
+    const inicioHoraActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), ahora.getHours(), 0);
+
+    let cursor = apertura > inicioHoraActual ? apertura : inicioHoraActual;
+
+    const franjas: FranjaHoraria[] = [];
+    while (cursor < cierre) {
+      const finFranja = new Date(Math.min(cursor.getTime() + 60 * 60 * 1000, cierre.getTime()));
+      const ocupada = reservas.some(
+        (reserva) => reserva.horaInicio < finFranja && reserva.horaFin > cursor,
+      );
+      franjas.push({
+        inicio: `${pad(cursor.getHours())}:${pad(cursor.getMinutes())}`,
+        fin: `${pad(finFranja.getHours())}:${pad(finFranja.getMinutes())}`,
+        ocupada,
+      });
+      cursor = finFranja;
+    }
+    return franjas;
+  }
 }
 

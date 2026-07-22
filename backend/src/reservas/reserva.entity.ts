@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
@@ -42,8 +43,18 @@ export class Reserva {
     this.estado = 'CONFIRMADA';
   }
 
-  // cancelar(): libera la reserva.
+  // cancelar(): libera la reserva; exige al menos 2 horas de anticipación al inicio.
   cancelar(): void {
+    if (this.estado === 'CANCELADA') {
+      throw new BadRequestException('La reserva ya está cancelada');
+    }
+    const minutosParaInicio = (this.horaInicio.getTime() - Date.now()) / (1000 * 60);
+    if (minutosParaInicio < 0) {
+      throw new BadRequestException('No se puede cancelar una reserva cuyo horario ya pasó');
+    }
+    if (minutosParaInicio < 120) {
+      throw new BadRequestException('Solo se puede cancelar una reserva con al menos 2 horas de anticipación');
+    }
     this.estado = 'CANCELADA';
   }
 

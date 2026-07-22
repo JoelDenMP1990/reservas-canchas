@@ -9,6 +9,12 @@ export interface Administrador {
   areaAsignada: string;
 }
 
+export interface FranjaHoraria {
+  inicio: string;
+  fin: string;
+  ocupada: boolean;
+}
+
 export interface Cancha {
   id: string;
   nombre: string;
@@ -17,6 +23,7 @@ export interface Cancha {
   activa: boolean;
   horaAperturaDesde: string;
   horaCierreHasta: string;
+  horarios: FranjaHoraria[];
   administrador?: {
     id: string;
     nombre: string;
