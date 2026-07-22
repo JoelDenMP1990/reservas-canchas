@@ -35,6 +35,14 @@ describe('Reserva', () => {
     expect(() => reserva.cancelar()).toThrow(BadRequestException);
   });
 
+  it('cancelar() rechaza con un mensaje distinto si el horario ya pasó', () => {
+    const reserva = new Reserva();
+    reserva.estado = 'CONFIRMADA';
+    reserva.horaInicio = new Date(Date.now() - 60 * 60 * 1000);
+
+    expect(() => reserva.cancelar()).toThrow('No se puede cancelar una reserva cuyo horario ya pasó');
+  });
+
   it('calcularPrecio() multiplica las horas reservadas por la tarifa de la cancha', () => {
     const cancha = new Cancha();
     cancha.tarifaBasePorHora = 10;

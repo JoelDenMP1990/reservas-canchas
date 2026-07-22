@@ -49,6 +49,9 @@ export class Reserva {
       throw new BadRequestException('La reserva ya está cancelada');
     }
     const minutosParaInicio = (this.horaInicio.getTime() - Date.now()) / (1000 * 60);
+    if (minutosParaInicio < 0) {
+      throw new BadRequestException('No se puede cancelar una reserva cuyo horario ya pasó');
+    }
     if (minutosParaInicio < 120) {
       throw new BadRequestException('Solo se puede cancelar una reserva con al menos 2 horas de anticipación');
     }
