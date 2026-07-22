@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 import { Cliente, ClientesService } from './clientes.service';
 
-// Pantalla CRUD de Cliente: listar, crear, editar, borrar.
 @Component({
   selector: 'app-clientes',
   standalone: true,
@@ -14,7 +13,7 @@ import { Cliente, ClientesService } from './clientes.service';
       <div class="contenido-ancho">
         <div class="tarjeta animate-fade-in">
           <h2>
-            <i class="icono">👤</i> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
+            <span class="icono-badge">👤</span> {{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}
           </h2>
           
           <form (ngSubmit)="guardar()" class="formulario-grid">
@@ -49,7 +48,7 @@ import { Cliente, ClientesService } from './clientes.service';
         </div>
 
         <div class="tarjeta animate-fade-in">
-          <h2><i class="icono">📋</i> Clientes Registrados</h2>
+          <h2><span class="icono-badge">📋</span> Clientes Registrados</h2>
 
           <div class="campo-grupo campo-busqueda">
             <input
@@ -70,15 +69,20 @@ import { Cliente, ClientesService } from './clientes.service';
 
           <ul class="lista-clientes">
             <li *ngFor="let c of clientesFiltrados; trackBy: trackById" class="item-cliente">
-              <div class="info-cliente">
-                <span class="nombre-cliente">{{ c.nombre }}</span>
-                <div class="detalles-fila">
-                  <span class="detalle-cliente">📧 {{ c.email }}</span>
-                  <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
+              <div class="info-principal">
+                <div class="avatar-inicial" [class.avatar-mujer]="esMujer(c.nombre)">
+                  {{ esMujer(c.nombre) ? '👩' : '👨' }}
                 </div>
-                
-                <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
-                  📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
+                <div class="info-cliente">
+                  <span class="nombre-cliente">{{ c.nombre }}</span>
+                  <div class="detalles-fila">
+                    <span class="detalle-cliente">📧 {{ c.email }}</span>
+                    <span class="detalle-cliente">📞 {{ c.telefono || 'Sin teléfono' }}</span>
+                  </div>
+                  
+                  <div *ngIf="reservasActivasPorCliente[c.id]" class="alerta-reservas">
+                    📅 Reservas activas: <strong>{{ reservasActivasPorCliente[c.id].length }}</strong>
+                  </div>
                 </div>
               </div>
               
@@ -108,33 +112,35 @@ import { Cliente, ClientesService } from './clientes.service';
       margin: 0 auto;
     }
 
-    /* Tarjetas con transparencia optimizada para ver el fondo de la cancha */
     .tarjeta {
-      background: rgba(255, 255, 255, 0.68);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 24px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 28px;
       margin-bottom: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.6);
     }
     
     h2 {
       color: #064e3b;
       margin-top: 0;
       margin-bottom: 20px;
-      font-size: 1.25rem;
-      font-weight: 700;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+      font-size: 1.3rem;
+      font-weight: 800;
+      border-bottom: 2px solid rgba(6, 78, 59, 0.12);
       padding-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .icono {
-      font-style: normal;
+    .icono-badge {
+      background: rgba(6, 78, 59, 0.1);
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 1.1rem;
     }
 
     .formulario-grid {
@@ -157,56 +163,52 @@ import { Cliente, ClientesService } from './clientes.service';
 
     .campo-grupo input {
       width: 100%;
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.95);
       border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 0.95rem;
       color: #0f172a;
-      transition: all 0.2s ease-in-out;
       outline: none;
       box-sizing: border-box;
     }
 
     .campo-grupo input:focus {
-      border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      border-color: #064e3b;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(6, 78, 59, 0.15);
     }
 
     .campo-busqueda {
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .botones-container {
       grid-column: 1 / -1;
       display: flex;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
     .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
       cursor: pointer;
       border: none;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       transition: all 0.2s ease-in-out;
-    }
-
-    .btn:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
     }
 
     .btn-guardar {
       background: #064e3b;
       color: white;
+      box-shadow: 0 4px 12px rgba(6, 78, 59, 0.3);
     }
 
     .btn-guardar:hover:not(:disabled) {
       background: #047857;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
     }
 
     .btn-cancelar {
@@ -214,43 +216,35 @@ import { Cliente, ClientesService } from './clientes.service';
       color: #334155;
     }
 
-    .btn-cancelar:hover {
-      background: #cbd5e1;
-    }
-
     .mensaje {
       grid-column: 1 / -1;
       margin-top: 15px;
       padding: 12px 16px;
-      border-radius: 8px;
-      font-weight: 500;
+      border-radius: 10px;
+      font-weight: 600;
       font-size: 0.9rem;
     }
 
-    .mensaje.exito {
-      background-color: #f0fdf4;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-
-    .mensaje.error {
-      background-color: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
+    .mensaje.exito { background-color: rgba(240, 253, 244, 0.95); color: #166534; border: 1px solid #bbf7d0; }
+    .mensaje.error { background-color: rgba(254, 242, 242, 0.95); color: #991b1b; border: 1px solid #fecaca; }
 
     .sin-datos {
       color: #1e293b;
       font-style: italic;
       text-align: center;
-      padding: 20px;
+      padding: 24px;
       font-weight: 600;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
     }
 
     .lista-clientes {
       list-style: none;
       padding: 0;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .item-cliente {
@@ -258,16 +252,45 @@ import { Cliente, ClientesService } from './clientes.service';
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      margin-bottom: 8px;
       background: rgba(255, 255, 255, 0.85);
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #064e3b;
-      border-radius: 8px;
-      transition: background-color 0.15s;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-left: 5px solid #064e3b;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
 
     .item-cliente:hover {
-      background-color: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.98);
+      transform: translateX(4px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-principal {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Avatar por defecto para Hombres (Tonos Verdes/Azules) */
+    .avatar-inicial {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #064e3b, #047857);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 10px rgba(6, 78, 59, 0.3);
+      flex-shrink: 0;
+    }
+
+    /* Avatar para Mujeres (Tonos Rosas/Rojos elegantes) */
+    .avatar-mujer {
+      background: linear-gradient(135deg, #be185d, #e11d48) !important;
+      box-shadow: 0 4px 10px rgba(190, 24, 93, 0.3) !important;
     }
 
     .info-cliente {
@@ -277,9 +300,9 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .nombre-cliente {
-      font-weight: 700;
+      font-weight: 800;
       color: #0f172a;
-      font-size: 1rem;
+      font-size: 1.05rem;
       text-transform: capitalize;
     }
 
@@ -290,9 +313,9 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .detalle-cliente {
-      color: #1e293b;
+      color: #334155;
       font-size: 0.875rem;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .alerta-reservas {
@@ -300,36 +323,41 @@ import { Cliente, ClientesService } from './clientes.service';
       font-size: 0.82rem;
       color: #0369a1;
       background: #e0f2fe;
-      padding: 2px 8px;
-      border-radius: 4px;
+      padding: 3px 10px;
+      border-radius: 6px;
       display: inline-block;
       width: fit-content;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .acciones-cliente {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
     }
 
     .btn-accion {
-      background: #f1f5f9;
+      background: rgba(241, 245, 249, 0.9);
       border: 1px solid #cbd5e1;
-      padding: 8px 10px;
-      border-radius: 6px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
     }
 
     .btn-accion:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-editar:hover { background: #e0f2fe; color: #0284c7; }
-    .btn-info:hover { background: #dcfce7; color: #15803d; }
-    .btn-borrar:hover { background: #fee2e2; color: #dc2626; }
+    .btn-editar:hover { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+    .btn-info:hover { background: #dcfce7; color: #15803d; border-color: #86efac; }
+    .btn-borrar:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
     .animate-fade-in {
       animation: fadeIn 0.3s ease-out;
@@ -373,6 +401,27 @@ export class ClientesComponent implements OnInit {
 
   trackById(_index: number, cliente: Cliente): string {
     return cliente.id;
+  }
+
+  // Función para determinar si el nombre es femenino (evalúa nombres comunes o terminación en 'a')
+  esMujer(nombre: string): boolean {
+    if (!nombre) return false;
+    const primerNombre = nombre.trim().toLowerCase().split(' ')[0];
+    
+    // Lista de nombres femeninos comunes que no necesariamente terminan en 'a'
+    const nombresFemeninosExcepcion = ['carmen', 'beatriz', 'raquel', 'isabel', 'pilar', 'mercedes', 'luz', 'ruth', 'inés'];
+    if (nombresFemeninosExcepcion.includes(primerNombre)) {
+      return true;
+    }
+
+    // Nombres masculinos comunes que terminan en 'a' para evitar falsos positivos
+    const nombresMasculinosExcepcion = ['luca', 'andrea', 'nicola', 'elías', 'josué', 'borja'];
+    if (nombresMasculinosExcepcion.includes(primerNombre)) {
+      return false;
+    }
+
+    // Regla general: si termina en 'a', se asume femenino
+    return primerNombre.endsWith('a');
   }
 
   refrescar(): void {
