@@ -243,11 +243,10 @@ export class ReservasComponent implements OnInit {
 
   guardar(): void {
     const { clienteId, canchaId, horaInicio, horaFin } = this.formulario;
-    const s = this.reservasService as any;
 
     const operacion = this.editandoId
-      ? s.actualizarHorario(this.editandoId, horaInicio, horaFin)
-      : s.crear(clienteId, canchaId, horaInicio, horaFin);
+      ? this.reservasService.editar(this.editandoId, { horaInicio, horaFin })
+      : this.reservasService.crear({ clienteId, canchaId, horaInicio, horaFin });
 
     operacion.subscribe({
       next: () => {
@@ -279,31 +278,16 @@ export class ReservasComponent implements OnInit {
   }
 
   confirmar(id: string): void {
-    const s = this.reservasService as any;
-    if (s.confirmar) {
-      s.confirmar(id).subscribe(() => this.refrescar());
-    }
+    this.reservasService.confirmar(id).subscribe(() => this.refrescar());
   }
 
   cancelar(id: string): void {
-    const s = this.reservasService as any;
-    if (s.cancelar) {
-      s.cancelar(id).subscribe(() => this.refrescar());
-    }
+    this.reservasService.cancelar(id).subscribe(() => this.refrescar());
   }
 
   eliminar(id: string): void {
     if (confirm('¿Está seguro de eliminar esta reserva?')) {
-      const s = this.reservasService as any;
-      if (s.borrar) {
-        s.borrar(id).subscribe(() => this.refrescar());
-      } else if (s.eliminar) {
-        s.eliminar(id).subscribe(() => this.refrescar());
-      }
+      this.reservasService.eliminar(id).subscribe(() => this.refrescar());
     }
-  }
-// Mejora de reservas para el registro de cambios
-  obtenerEstadoModulo(): string {
-    return 'Módulo de reservas optimizado';
   }
 }
