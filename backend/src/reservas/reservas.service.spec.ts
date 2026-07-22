@@ -105,6 +105,52 @@ describe('ReservasService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it('rechaza crear una reserva con hora de inicio en el pasado', async () => {
+    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
+    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+
+    await expect(
+      service.crear({
+        clienteId: 'cliente-1',
+        canchaId: 'cancha-1',
+        horaInicio: '2020-01-01T10:00:00',
+        horaFin: '2020-01-01T12:00:00',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rechaza crear una reserva cuya hora de fin no es posterior a la de inicio', async () => {
+    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
+    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+
+    await expect(
+      service.crear({
+        clienteId: 'cliente-1',
+        canchaId: 'cancha-1',
+        horaInicio: '2026-08-01T12:00:00',
+        horaFin: '2026-08-01T10:00:00',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('editar() rechaza reprogramar a una hora de inicio en el pasado', async () => {
+    const reserva = Object.assign(new Reserva(), {
+      id: 'reserva-1',
+      estado: 'PENDIENTE',
+      horaInicio: new Date(Date.now() + 3 * 60 * 60 * 1000),
+      horaFin: new Date(Date.now() + 4 * 60 * 60 * 1000),
+    });
+    reservasRepositorio.findOne.mockResolvedValue(reserva);
+
+    await expect(
+      service.editar('reserva-1', { horaInicio: '2020-01-01T10:00:00' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('cancelar() notifica al cliente cuando faltan al menos 2 horas para el inicio', async () => {
     const reserva = Object.assign(new Reserva(), {
       id: 'reserva-1',

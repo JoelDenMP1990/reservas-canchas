@@ -53,11 +53,21 @@ export class ReservasService {
     if (!cancha.estaDisponible()) {
       throw new BadRequestException('La cancha no está disponible');
     }
+
+    const horaInicio = new Date(dto.horaInicio);
+    const horaFin = new Date(dto.horaFin);
+    if (horaInicio < new Date()) {
+      throw new BadRequestException('No se puede reservar en una fecha u hora que ya pasó');
+    }
+    if (horaFin <= horaInicio) {
+      throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
+    }
+
     const reserva = this.reservasRepository.create({
       cliente,
       cancha,
-      horaInicio: new Date(dto.horaInicio),
-      horaFin: new Date(dto.horaFin),
+      horaInicio,
+      horaFin,
       estado: 'PENDIENTE',
     });
     reserva.monto = reserva.calcularPrecio();
@@ -94,12 +104,18 @@ export class ReservasService {
     if (reserva.estado !== 'PENDIENTE') {
       throw new BadRequestException('Solo se puede reprogramar una reserva pendiente');
     }
-    if (dto.horaInicio) {
-      reserva.horaInicio = new Date(dto.horaInicio);
+
+    const horaInicio = dto.horaInicio ? new Date(dto.horaInicio) : reserva.horaInicio;
+    const horaFin = dto.horaFin ? new Date(dto.horaFin) : reserva.horaFin;
+    if (horaInicio < new Date()) {
+      throw new BadRequestException('No se puede reprogramar a una fecha u hora que ya pasó');
     }
-    if (dto.horaFin) {
-      reserva.horaFin = new Date(dto.horaFin);
+    if (horaFin <= horaInicio) {
+      throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
     }
+
+    reserva.horaInicio = horaInicio;
+    reserva.horaFin = horaFin;
     reserva.monto = reserva.calcularPrecio();
     return this.reservasRepository.save(reserva);
   }
