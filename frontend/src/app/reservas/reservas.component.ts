@@ -55,7 +55,7 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
           <div>
             <strong>{{ r.cancha?.nombre || $any(r).canchaId }}</strong> — {{ r.cliente?.nombre || $any(r).clienteId }}
             <br />
-            <small>{{ r.horaInicio }} a {{ r.horaFin }}</small>
+            <small>{{ r.horaInicio | date: 'dd/MM/yyyy HH:mm' }} a {{ r.horaFin | date: 'dd/MM/yyyy HH:mm' }}</small>
             <br />
             <span *ngIf="r.estado" class="etiqueta-estado">Estado: {{ r.estado }}</span>
           </div>
@@ -299,10 +299,18 @@ export class ReservasComponent implements OnInit {
     this.formulario = {
       clienteId: reserva.cliente?.id ?? reserva.clienteId ?? '',
       canchaId: reserva.cancha?.id ?? reserva.canchaId ?? '',
-      horaInicio: reserva.horaInicio ? reserva.horaInicio.slice(0, 16) : '',
-      horaFin: reserva.horaFin ? reserva.horaFin.slice(0, 16) : '',
+      horaInicio: reserva.horaInicio ? this.aFechaLocal(reserva.horaInicio) : '',
+      horaFin: reserva.horaFin ? this.aFechaLocal(reserva.horaFin) : '',
       metodoPago: 'EFECTIVO',
     };
+  }
+
+  // aFechaLocal(): convierte un ISO UTC (con "Z") al valor que espera un input datetime-local,
+  // en la hora local del navegador (evita el desfase que se veía al reprogramar una reserva).
+  private aFechaLocal(fechaIso: string): string {
+    const fecha = new Date(fechaIso);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
   }
 
   cancelarEdicion(): void {
