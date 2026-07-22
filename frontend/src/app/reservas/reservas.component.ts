@@ -11,42 +11,46 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="tarjeta">
-      <h2>{{ editandoId ? 'Reprogramar reserva' : 'Nueva reserva' }}</h2>
-      <form (ngSubmit)="guardar()">
-        <label *ngIf="!editandoId">
-          Cliente
-          <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
-            <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
-          </select>
-        </label>
-        <label *ngIf="!editandoId">
-          Cancha
-          <select name="canchaId" [(ngModel)]="formulario.canchaId" required>
-            <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }} — &#36;{{ c.tarifaBasePorHora }}/h</option>
-          </select>
-        </label>
-        <label>Hora inicio <input name="horaInicio" type="datetime-local" [(ngModel)]="formulario.horaInicio" required /></label>
-        <label>Hora fin <input name="horaFin" type="datetime-local" [(ngModel)]="formulario.horaFin" required /></label>
-        <button type="submit">{{ editandoId ? 'Guardar cambios' : 'Reservar' }}</button>
-        <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar edición</button>
-      </form>
-      <p class="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
-    </div>
+    <div class="contenedor-principal">
+      <div class="contenido-ancho">
+        <div class="tarjeta animate-fade-in">
+          <h2>{{ editandoId ? 'Reprogramar reserva' : 'Nueva reserva' }}</h2>
+          <form (ngSubmit)="guardar()">
+            <label *ngIf="!editandoId">
+              Cliente
+              <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
+                <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
+              </select>
+            </label>
+            <label *ngIf="!editandoId">
+              Cancha
+              <select name="canchaId" [(ngModel)]="formulario.canchaId" required>
+                <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }} — &#36;{{ c.tarifaBasePorHora }}/h</option>
+              </select>
+            </label>
+            <label>Hora inicio <input name="horaInicio" type="datetime-local" [(ngModel)]="formulario.horaInicio" required /></label>
+            <label>Hora fin <input name="horaFin" type="datetime-local" [(ngModel)]="formulario.horaFin" required /></label>
+            <button type="submit">{{ editandoId ? 'Guardar cambios' : 'Reservar' }}</button>
+            <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar edición</button>
+          </form>
+          <p class="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
+        </div>
 
-    <div class="tarjeta">
-      <h2>Reservas</h2>
-      <ul>
-        <li *ngFor="let r of reservas">
-          {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — {{ r.estado }} — &#36;{{ r.monto }}
-          <div>{{ r.horaInicio | date: 'short' }} a {{ r.horaFin | date: 'short' }}</div>
-          <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">Reprogramar</button>
-          <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="confirmar(r.id)">Confirmar</button>
-          <button type="button" *ngIf="r.estado !== 'CANCELADA'" (click)="cancelar(r.id)">Cancelar</button>
-          <button type="button" (click)="eliminar(r.id)">Borrar</button>
-        </li>
-        <li *ngIf="reservas.length === 0">Sin reservas todavía.</li>
-      </ul>
+        <div class="tarjeta animate-fade-in">
+          <h2>Reservas</h2>
+          <ul>
+            <li *ngFor="let r of reservas">
+              {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — {{ r.estado }} — &#36;{{ r.monto }}
+              <div>{{ r.horaInicio | date: 'short' }} a {{ r.horaFin | date: 'short' }}</div>
+              <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">Reprogramar</button>
+              <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="confirmar(r.id)">Confirmar</button>
+              <button type="button" *ngIf="r.estado !== 'CANCELADA'" (click)="cancelar(r.id)">Cancelar</button>
+              <button type="button" (click)="eliminar(r.id)">Borrar</button>
+            </li>
+            <li *ngIf="reservas.length === 0">Sin reservas todavía.</li>
+          </ul>
+        </div>
+      </div>
     </div>
   `,
 })

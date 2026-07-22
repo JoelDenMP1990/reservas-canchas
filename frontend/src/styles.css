@@ -30,11 +30,14 @@ main {
 }
 
 .tarjeta {
-  background: white;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 form label {
@@ -86,7 +89,31 @@ button:hover {
 /* Centrar el contenido de la pantalla de Clientes */
 app-clientes {
   display: block;
-  max-width: 1200px; /* Ampliado para permitir 2 columnas */
-  margin: 30px auto;
-  padding: 0 20px;
+}
+
+/* Fondo de césped con velo oscuro - GLOBAL para todos los módulos */
+.contenedor-principal {
+  width: 100vw;
+  min-height: calc(100vh - 70px);
+  margin-left: calc(-50vw + 50%);
+  padding: 40px 20px;
+  background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
+              url('https://images.unsplash.com/photo-1493538706211-316874a1e8b4?auto=format&fit=crop&w=2000&q=80') no-repeat center center scroll;
+  background-size: cover;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.contenido-ancho {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
