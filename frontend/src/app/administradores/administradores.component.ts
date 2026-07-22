@@ -95,6 +95,15 @@ template: `
 
   <hr />
 
+  <button
+    type="button"
+    *ngIf="!mostrarFormularioCancha"
+    (click)="mostrarFormularioCancha = true"
+  >
+    + Registrar cancha
+  </button>
+
+  <ng-container *ngIf="mostrarFormularioCancha">
   <h3>
     {{ editandoCanchaId ? 'Editar cancha' : 'Registrar nueva cancha' }}
   </h3>
@@ -170,12 +179,12 @@ template: `
 
     <button
       type="button"
-      *ngIf="editandoCanchaId"
       (click)="cancelarEdicionCancha()"
     >
       Cancelar
     </button>
   </form>
+  </ng-container>
 
   <hr />
 
@@ -342,6 +351,7 @@ horaCierreHasta: '22:00',
 
 editandoAdministradorId: string | null = null;
 editandoCanchaId: string | null = null;
+mostrarFormularioCancha = false;
 
 reporte = '';
 
@@ -399,6 +409,8 @@ operacion.subscribe({
 }
 
 seleccionarAdministrador(): void {
+this.cancelarEdicionCancha();
+
 if (!this.administradorSeleccionadoId) {
 this.administradorSeleccionado = null;
 this.canchas = [];
@@ -452,6 +464,7 @@ guardarCancha(): void {
       .subscribe({
         next: () => {
           this.mensaje = 'Cancha actualizada correctamente.';
+          this.cancelarEdicionCancha();
           this.cargarCanchas();
         },
         error: (error) => {
@@ -465,6 +478,7 @@ guardarCancha(): void {
       .subscribe({
         next: () => {
           this.mensaje = 'Cancha registrada correctamente.';
+          this.cancelarEdicionCancha();
           this.cargarCanchas();
         },
         error: (error) => {
@@ -477,7 +491,7 @@ guardarCancha(): void {
 
 editarCancha(cancha: CanchaAdministrador): void {
 this.editandoCanchaId = cancha.id;
-
+this.mostrarFormularioCancha = true;
 
 this.formularioCancha = {
   nombre: cancha.nombre,
@@ -555,6 +569,7 @@ this.formularioAdministrador = {
 
 cancelarEdicionCancha(): void {
 this.editandoCanchaId = null;
+this.mostrarFormularioCancha = false;
 
 this.formularioCancha = {
   nombre: '',

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Administrador } from './administrador.entity';
 import { CrearAdministradorDto } from './dto/crear-administrador.dto';
 import { EditarAdministradorDto } from './dto/editar-administrador.dto';
@@ -76,7 +76,8 @@ export class AdministradoresService {
     const activas = canchas.filter((c) => c.activa).length;
     return `${canchas.length} canchas registradas, ${activas} activas`;
   }
-  // listarCanchas(): las canchas del administrador, cada una con su ocupación en tiempo real.
+  // listarCanchas(): las canchas del administrador, marcando si tienen una reserva
+  // confirmada vigente (que ya inició o está por iniciar, y todavía no ha terminado).
   async listarCanchas(administradorId: string): Promise<CanchaConEstado[]> {
     await this.obtenerPorId(administradorId);
 
@@ -87,15 +88,14 @@ export class AdministradoresService {
     const ahora = new Date();
     const canchasConEstado: CanchaConEstado[] = [];
     for (const cancha of canchas) {
-      const reservaEnCurso = await this.reservasRepository.findOne({
+      const reservaVigente = await this.reservasRepository.findOne({
         where: {
           cancha: { id: cancha.id },
           estado: 'CONFIRMADA',
-          horaInicio: LessThanOrEqual(ahora),
           horaFin: MoreThanOrEqual(ahora),
         },
       });
-      canchasConEstado.push(Object.assign(cancha, { ocupadaAhora: !!reservaEnCurso }));
+      canchasConEstado.push(Object.assign(cancha, { ocupadaAhora: !!reservaVigente }));
     }
     return canchasConEstado;
   }
