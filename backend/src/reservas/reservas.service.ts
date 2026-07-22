@@ -38,9 +38,19 @@ export class ReservasService {
     return reserva;
   }
 
-  // crear(): CU-02 completo — verifica disponibilidad, calcula el precio, procesa el pago
-  // (o lo omite si la cancha es gratuita), confirma la reserva y notifica al cliente.
+  // crear(): CU-02 — orquesta los 3 pasos en métodos privados (Extract Method, corrige el
+  // mal olor de método largo): validar cliente/cancha/horario, crear la reserva pendiente,
+  // y procesar el pago (o confirmarla directo si la cancha es gratuita).
   async crear(dto: CrearReservaDto): Promise<Reserva> {
+    const { cliente, cancha, horaInicio, horaFin } = await this.validarDatosDeReserva(dto);
+    const reserva = await this.crearReservaPendiente(cliente, cancha, horaInicio, horaFin);
+    return this.confirmarConPago(reserva, cancha, dto.metodoPago);
+  }
+
+  // validarDatosDeReserva(): busca cliente y cancha, y valida disponibilidad/horario/solapamiento.
+  private async validarDatosDeReserva(
+    dto: CrearReservaDto,
+  ): Promise<{ cliente: Cliente; cancha: Cancha; horaInicio: Date; horaFin: Date }> {
     const cliente = await this.clientesRepository.findOneBy({ id: dto.clienteId });
     if (!cliente) {
       throw new NotFoundException('Cliente no encontrado');
@@ -65,6 +75,16 @@ export class ReservasService {
       throw new BadRequestException('La cancha ya tiene una reserva confirmada en ese horario');
     }
 
+    return { cliente, cancha, horaInicio, horaFin };
+  }
+
+  // crearReservaPendiente(): guarda la reserva en estado PENDIENTE con su precio calculado.
+  private async crearReservaPendiente(
+    cliente: Cliente,
+    cancha: Cancha,
+    horaInicio: Date,
+    horaFin: Date,
+  ): Promise<Reserva> {
     const reserva = this.reservasRepository.create({
       cliente,
       cancha,
@@ -73,8 +93,12 @@ export class ReservasService {
       estado: 'PENDIENTE',
     });
     reserva.monto = reserva.calcularPrecio();
-    await this.reservasRepository.save(reserva);
+    return this.reservasRepository.save(reserva);
+  }
 
+  // confirmarConPago(): omite el pago si la cancha es gratuita; si no, lo procesa y confirma
+  // la reserva solo si fue aprobado. Siempre notifica al cliente el resultado.
+  private async confirmarConPago(reserva: Reserva, cancha: Cancha, metodoPago?: string): Promise<Reserva> {
     if (cancha.esGratuita()) {
       reserva.confirmar();
       await this.reservasRepository.save(reserva);
@@ -85,7 +109,7 @@ export class ReservasService {
     const pago = this.pagosRepository.create({
       reserva,
       monto: reserva.monto,
-      metodoPago: dto.metodoPago ?? 'EFECTIVO',
+      metodoPago: metodoPago ?? 'EFECTIVO',
     });
     const aprobado = pago.procesar();
     await this.pagosRepository.save(pago);
