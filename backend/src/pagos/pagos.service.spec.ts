@@ -1,14 +1,18 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PagosService } from './pagos.service';
 import { Pago } from './pago.entity';
 import { Reserva } from '../reservas/reserva.entity';
+import { MetodoPago } from './metodo-pago.enum';
 
 describe('PagosService', () => {
   let service: PagosService;
 
-  let pagosRepository = {
+  const pagosRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
@@ -16,7 +20,7 @@ describe('PagosService', () => {
     remove: jest.fn(),
   };
 
-  let reservasRepository = {
+  const reservasRepository = {
     findOneBy: jest.fn(),
     save: jest.fn(),
   };
@@ -43,7 +47,11 @@ describe('PagosService', () => {
 
   it('debe listar los pagos', async () => {
     pagosRepository.find.mockResolvedValue([]);
-    expect(await service.listar()).toEqual([]);
+
+    await expect(service.listar()).resolves.toEqual([]);
+    expect(pagosRepository.find).toHaveBeenCalledWith({
+      relations: ['reserva'],
+    });
   });
 
   it('debe lanzar error si no encuentra un pago', async () => {
@@ -58,6 +66,7 @@ describe('PagosService', () => {
     const pago = {} as Pago;
 
     jest.spyOn(service, 'obtenerPorId').mockResolvedValue(pago);
+    pagosRepository.remove.mockResolvedValue(pago);
 
     await service.eliminar('1');
 
@@ -71,21 +80,20 @@ describe('PagosService', () => {
       service.crear({
         reservaId: '1',
         monto: 20,
-        metodoPago: 'Efectivo',
+        metodoPago: MetodoPago.EFECTIVO,
       }),
     ).rejects.toThrow(NotFoundException);
   });
 
   it('debe lanzar error si la reserva ya tiene pago', async () => {
     reservasRepository.findOneBy.mockResolvedValue({ id: '1' });
-
     pagosRepository.findOne.mockResolvedValue({});
 
     await expect(
       service.crear({
         reservaId: '1',
         monto: 20,
-        metodoPago: 'Efectivo',
+        metodoPago: MetodoPago.EFECTIVO,
       }),
     ).rejects.toThrow(BadRequestException);
   });

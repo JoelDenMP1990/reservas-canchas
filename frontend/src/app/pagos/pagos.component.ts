@@ -4,137 +4,217 @@ import { FormsModule } from '@angular/forms';
 import { Pago, PagosService } from './pagos.service';
 import { Reserva, ReservasService } from '../reservas/reservas.service';
 
-// Pantalla CRUD de Pago: listar, registrar (procesa y confirma la reserva), borrar.
+// Pantalla CRUD de Pago: listar, registrar, procesar, confirmar y borrar.
 @Component({
   selector: 'app-pagos',
   standalone: true,
   imports: [CommonModule, FormsModule],
 
- template: `
-  <div class="tarjeta">
-    <h2>💳 Gestión de Pagos</h2>
-    <p>Registra los pagos y consulta los pagos realizados.</p>
+  template: `
+    <div class="tarjeta">
+      <h2>💳 Gestión de Pagos</h2>
+      <p>Registra los pagos y consulta los pagos realizados.</p>
 
-    <form (ngSubmit)="guardar()">
+      <form (ngSubmit)="guardar()">
+        <div class="campo">
+          <label for="reservaId">Reserva</label>
 
-      <label>
-        Reserva
-        <select name="reservaId" [(ngModel)]="formulario.reservaId" required>
-          <option *ngFor="let r of reservasPendientes" [value]="r.id">
-            {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — &#36;{{ r.monto }}
-          </option>
-        </select>
-      </label>
+          <select
+            id="reservaId"
+            name="reservaId"
+            [(ngModel)]="formulario.reservaId"
+            required
+          >
+            <option value="" disabled>Seleccione una reserva</option>
 
-      <div class="campo">
-        <label>Monto ($)</label>
-        <input
-          name="monto"
-          type="number"
-          min="0"
-          [(ngModel)]="formulario.monto"
-          required
-        />
-      </div>
+            <option
+              *ngFor="let r of reservasPendientes"
+              [value]="r.id"
+            >
+              {{ r.cliente?.nombre }} —
+              {{ r.cancha?.nombre }} —
+              &#36;{{ r.monto }}
+            </option>
+          </select>
+        </div>
 
-      <div class="campo">
-        <label>Método de pago</label>
-        <input
-          name="metodoPago"
-          [(ngModel)]="formulario.metodoPago"
-          required
-        />
-      </div>
+        <div class="campo">
+          <label for="monto">Monto ($)</label>
 
-      <button class="btn-guardar" type="submit">
-        💳 Procesar Pago
-      </button>
+          <input
+            id="monto"
+            name="monto"
+            type="number"
+            min="0"
+            [(ngModel)]="formulario.monto"
+            required
+          />
+        </div>
 
-    </form>
+        <div class="campo">
+          <label for="metodoPago">Método de pago</label>
 
-    <p class="mensaje" [class]="mensajeTipo">
-      {{ mensaje }}
-    </p>
-  </div>
+          <select
+            id="metodoPago"
+            name="metodoPago"
+            [(ngModel)]="formulario.metodoPago"
+            required
+          >
+            <option value="" disabled>Seleccione un método</option>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="TARJETA">Tarjeta</option>
+            <option value="TRANSFERENCIA">Transferencia</option>
+          </select>
+        </div>
 
-  <div class="tarjeta">
-    <h2>📋 Historial de Pagos</h2>
-
-    <ul>
-      <li *ngFor="let p of pagos">
-        &#36;{{ p.monto }} —
-        {{ p.metodoPago }} —
-        {{ p.procesadoEn | date:'short' }}
-
-        <button type="button" (click)="eliminar(p.id)">
-          Borrar
+        <button class="btn-guardar" type="submit">
+          💳 Procesar pago
         </button>
-      </li>
+      </form>
 
-      <li *ngIf="pagos.length === 0">
-        Sin pagos todavía.
-      </li>
-    </ul>
-  </div>
-`,
+      <p
+        *ngIf="mensaje"
+        class="mensaje"
+        [class]="mensajeTipo"
+      >
+        {{ mensaje }}
+      </p>
+    </div>
+
+    <div class="tarjeta">
+      <h2>📋 Historial de Pagos</h2>
+
+      <ul>
+        <li *ngFor="let p of pagos">
+          <div class="detalle-pago">
+            <span>
+              &#36;{{ p.monto }} —
+              {{ p.metodoPago }} —
+              {{ p.procesadoEn | date:'short' }}
+            </span>
+
+            <button
+              class="btn-borrar"
+              type="button"
+              (click)="eliminar(p.id)"
+            >
+              Borrar
+            </button>
+          </div>
+        </li>
+
+        <li *ngIf="pagos.length === 0">
+          Sin pagos todavía.
+        </li>
+      </ul>
+    </div>
+  `,
 
   styles: [`
-    .tarjeta{
-      max-width:700px;
-      margin:20px auto;
-      padding:20px;
-      border-radius:12px;
-      background:#ffffff;
-      box-shadow:0 4px 10px rgba(0,0,0,.15);
+    .tarjeta {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
-    .campo{
-      margin-bottom:15px;
+    .campo {
+      margin-bottom: 15px;
     }
 
-    .campo label{
-      display:block;
-      font-weight:bold;
-      margin-bottom:6px;
+    .campo label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
     }
 
-    input,select{
-      width:100%;
-      padding:10px;
-      border:1px solid #ccc;
-      border-radius:8px;
+    input,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
     }
 
-    .btn-guardar{
-      background:#0d6efd;
-      color:white;
-      border:none;
-      padding:10px 18px;
-      border-radius:8px;
-      cursor:pointer;
+    .btn-guardar {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #0d6efd;
+      color: white;
+      cursor: pointer;
     }
 
-    ul{
-      list-style:none;
-      padding:0;
+    .btn-guardar:hover {
+      background: #0b5ed7;
     }
 
-    li{
-      background:#f8f9fa;
-      margin:8px 0;
-      padding:10px;
-      border-radius:8px;
+    .btn-borrar {
+      padding: 7px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #dc3545;
+      color: white;
+      cursor: pointer;
     }
-  `]
+
+    .btn-borrar:hover {
+      background: #bb2d3b;
+    }
+
+    .mensaje {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .exito {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #842029;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+
+    .detalle-pago {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+  `],
 })
 export class PagosComponent implements OnInit {
   pagos: Pago[] = [];
   reservasPendientes: Reserva[] = [];
-  formulario: { reservaId: string; monto: number; metodoPago: string } = {
+
+  formulario: {
+    reservaId: string;
+    monto: number;
+    metodoPago: '' | 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+  } = {
     reservaId: '',
     monto: 0,
     metodoPago: '',
   };
+
   mensaje = '';
   mensajeTipo = '';
 
@@ -145,13 +225,18 @@ export class PagosComponent implements OnInit {
 
   ngOnInit(): void {
     this.refrescar();
-    this.reservasService
-      .listar()
-      .subscribe((reservas) => (this.reservasPendientes = reservas.filter((r) => r.estado === 'PENDIENTE')));
+
+    this.reservasService.listar().subscribe((reservas) => {
+      this.reservasPendientes = reservas.filter(
+        (reserva) => reserva.estado === 'PENDIENTE',
+      );
+    });
   }
 
   refrescar(): void {
-    this.pagosService.listar().subscribe((pagos) => (this.pagos = pagos));
+    this.pagosService.listar().subscribe((pagos) => {
+      this.pagos = pagos;
+    });
   }
 
   guardar(): void {
@@ -159,17 +244,37 @@ export class PagosComponent implements OnInit {
       next: () => {
         this.mensaje = 'Pago procesado y reserva confirmada.';
         this.mensajeTipo = 'mensaje exito';
-        this.formulario = { reservaId: '', monto: 0, metodoPago: '' };
+
+        this.formulario = {
+          reservaId: '',
+          monto: 0,
+          metodoPago: '',
+        };
+
         this.refrescar();
       },
+
       error: (error) => {
-        this.mensaje = error.error?.message ?? 'No se pudo registrar el pago.';
+        this.mensaje =
+          error.error?.message ?? 'No se pudo registrar el pago.';
         this.mensajeTipo = 'mensaje error';
       },
     });
   }
 
   eliminar(id: string): void {
-    this.pagosService.eliminar(id).subscribe(() => this.refrescar());
+    this.pagosService.eliminar(id).subscribe({
+      next: () => {
+        this.mensaje = 'Pago eliminado correctamente.';
+        this.mensajeTipo = 'mensaje exito';
+        this.refrescar();
+      },
+
+      error: (error) => {
+        this.mensaje =
+          error.error?.message ?? 'No se pudo eliminar el pago.';
+        this.mensajeTipo = 'mensaje error';
+      },
+    });
   }
 }
