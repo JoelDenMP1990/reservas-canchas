@@ -123,23 +123,22 @@ import { Administrador, AdministradoresService } from '../administradores/admini
   `,
 
   styles: [`
-    /* Layout de 2 columnas propio de este módulo (antes se llamaba .contenedor-principal,
-       renombrado para no chocar con la clase global del fondo de cancha) */
     .canchas-layout {
       display: grid;
       grid-template-columns: 1.5fr 1fr;
       gap: 2rem;
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-         url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
-      background-size: cover;
+      min-height: calc(100vh - 70px);
+      padding: 20px;
+      box-sizing: border-box;
     } 
 
-    /* Tarjetas*/
     .tarjeta {  
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.5);
       overflow: hidden;
       display: flex;
@@ -160,7 +159,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       gap: 0.5rem;
     }
 
-    /* Formularios*/
     .formulario {
       padding: 1.5rem;
     }
@@ -183,7 +181,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     label {
       font-size: 0.875rem;
       font-weight: 600;
-      color: #4a5568;
+      color: #2d3748;
       margin-bottom: 0.4rem;
     }
 
@@ -194,13 +192,14 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       font-size: 0.95rem;
       transition: all 0.2s;
       outline: none;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       box-sizing: border-box;
+      color: #1a202c;
     }
 
     input:focus, select:focus {
       border-color: #276749;
-      box-shadow: 0 0 0 3px rgba(39, 103, 73, 0.1);
+      box-shadow: 0 0 0 3px rgba(39, 103, 73, 0.15);
       background: #ffffff;
     }
 
@@ -214,6 +213,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       gap: 0.5rem;
       font-weight: normal;
       cursor: pointer;
+      color: #2d3748;
     }
 
     .checkbox-label input {
@@ -222,7 +222,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       cursor: pointer;
     }
 
-    /* Botones */
     .acciones-formulario {
       display: flex;
       gap: 1rem;
@@ -261,7 +260,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       background-color: #e2e8f0;
     }
 
-    /* lista de canchas*/
     .canchas-grid {
       padding: 1rem 1.25rem;
       display: flex;
@@ -302,7 +300,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .cancha-header h3 {
       margin: 0;
       font-size: 1rem;
-      color: #2d3748;
+      color: #1a202c;
     }
 
     .badge {
@@ -326,10 +324,9 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .cancha-detalle {
       margin: 0.15rem 0; 
       font-size: 0.8rem;
-      color: #718096;
+      color: #4a5568;
     }
 
-    /* Botones de acción  */
     .cancha-acciones {
       display: flex;
       gap: 0.4rem;
@@ -338,8 +335,8 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .btn-icon {
       background: #edf2f7;
       border: none;
-      width: 32px; /* Más chico */
-      height: 32px; /* Más chico */
+      width: 32px;
+      height: 32px;
       border-radius: 6px;
       cursor: pointer;
       display: flex;
@@ -352,7 +349,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .btn-edit:hover { background: #bee3f8; }
     .btn-delete:hover { background: #fed7d7; }
 
-    /* Alertas */
     .alerta {
       margin: 1rem 1.5rem 1.5rem;
       padding: 0.85rem;
@@ -376,12 +372,11 @@ import { Administrador, AdministradoresService } from '../administradores/admini
 
     .estado-vacio {
       text-align: center;
-      color: #a0aec0;
+      color: #4a5568;
       padding: 1.5rem;
       font-size: 0.9rem;
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       .canchas-layout {
         grid-template-columns: 1fr;
@@ -393,7 +388,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       }
     }
   `] 
-
 })
 export class CanchasComponent implements OnInit {
   canchas: Cancha[] = [];

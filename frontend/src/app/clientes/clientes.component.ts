@@ -94,15 +94,11 @@ import { Cliente, ClientesService } from './clientes.service';
     </div>
   `,
   styles: [`
-    /* Fondo de césped con velo oscuro más ligero para apreciar mejor la cancha */
     .contenedor-principal {
       width: 100vw;
       min-height: calc(100vh - 70px);
       margin-left: calc(-50vw + 50%);
       padding: 40px 20px;
-      background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-                  url('https://images.unsplash.com/photo-1493538706211-316874a1e8b4?auto=format&fit=crop&w=2000&q=80') no-repeat center center scroll;
-      background-size: cover;
       box-sizing: border-box;
       position: relative;
     }
@@ -112,16 +108,16 @@ import { Cliente, ClientesService } from './clientes.service';
       margin: 0 auto;
     }
 
-    /* Tarjetas semitransparentes (efecto cristal) */
+    /* Tarjetas con fondo blanco sólido y alta legibilidad */
     .tarjeta {
-      background: rgba(255, 255, 255, 0.62);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.8);
     }
     
     h2 {
@@ -129,8 +125,8 @@ import { Cliente, ClientesService } from './clientes.service';
       margin-top: 0;
       margin-bottom: 20px;
       font-size: 1.25rem;
-      font-weight: 600;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+      font-weight: 700;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.08);
       padding-bottom: 12px;
       display: flex;
       align-items: center;
@@ -141,7 +137,6 @@ import { Cliente, ClientesService } from './clientes.service';
       font-style: normal;
     }
 
-    /* Formulario organizado en 3 columnas exactas de lado a lado */
     .formulario-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -155,18 +150,19 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .campo-grupo label {
-      font-weight: 600;
-      color: #1e293b;
+      font-weight: 700;
+      color: #0f172a;
       font-size: 0.875rem;
     }
 
     .campo-grupo input {
       width: 100%;
       padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
       border-radius: 8px;
       font-size: 0.95rem;
+      color: #0f172a;
       transition: all 0.2s ease-in-out;
       outline: none;
       box-sizing: border-box;
@@ -174,7 +170,6 @@ import { Cliente, ClientesService } from './clientes.service';
 
     .campo-grupo input:focus {
       border-color: #10b981;
-      background: #ffffff;
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
@@ -215,12 +210,12 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .btn-cancelar {
-      background: rgba(241, 245, 249, 0.9);
-      color: #475569;
+      background: #e2e8f0;
+      color: #334155;
     }
 
     .btn-cancelar:hover {
-      background: #e2e8f0;
+      background: #cbd5e1;
     }
 
     .mensaje {
@@ -233,22 +228,23 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .mensaje.exito {
-      background-color: rgba(240, 253, 244, 0.95);
+      background-color: #f0fdf4;
       color: #166534;
       border: 1px solid #bbf7d0;
     }
 
     .mensaje.error {
-      background-color: rgba(254, 242, 242, 0.95);
+      background-color: #fef2f2;
       color: #991b1b;
       border: 1px solid #fecaca;
     }
 
     .sin-datos {
-      color: #475569;
+      color: #334155;
       font-style: italic;
       text-align: center;
       padding: 20px;
+      font-weight: 500;
     }
 
     .lista-clientes {
@@ -262,13 +258,16 @@ import { Cliente, ClientesService } from './clientes.service';
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      margin-bottom: 8px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #064e3b;
+      border-radius: 8px;
       transition: background-color 0.15s;
     }
 
     .item-cliente:hover {
-      background-color: rgba(255, 255, 255, 0.6);
-      border-radius: 8px;
+      background-color: #f8fafc;
     }
 
     .info-cliente {
@@ -278,7 +277,7 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .nombre-cliente {
-      font-weight: 600;
+      font-weight: 700;
       color: #0f172a;
       font-size: 1rem;
       text-transform: capitalize;
@@ -291,19 +290,21 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .detalle-cliente {
-      color: #334155;
+      color: #1e293b;
       font-size: 0.875rem;
+      font-weight: 500;
     }
 
     .alerta-reservas {
       margin-top: 4px;
       font-size: 0.82rem;
       color: #0369a1;
-      background: rgba(224, 242, 254, 0.9);
+      background: #e0f2fe;
       padding: 2px 8px;
       border-radius: 4px;
       display: inline-block;
       width: fit-content;
+      font-weight: 600;
     }
 
     .acciones-cliente {
@@ -313,8 +314,8 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .btn-accion {
-      background: rgba(241, 245, 249, 0.8);
-      border: none;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       padding: 8px 10px;
       border-radius: 6px;
       cursor: pointer;
@@ -433,7 +434,6 @@ export class ClientesComponent implements OnInit {
   }
 
   verReservasActivas(cliente: Cliente): void {
-    // Si ya se están mostrando, el mismo botón las oculta (toggle).
     if (this.reservasActivasPorCliente[cliente.id]) {
       delete this.reservasActivasPorCliente[cliente.id];
       return;

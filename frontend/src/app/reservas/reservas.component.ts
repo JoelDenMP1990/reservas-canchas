@@ -5,135 +5,101 @@ import { Reserva, ReservasService } from './reservas.service';
 import { Cliente, ClientesService } from '../clientes/clientes.service';
 import { Cancha, CanchasService } from '../canchas/canchas.service';
 
-// Pantalla CRUD de Reserva: listar, crear, editar horario, confirmar, cancelar, borrar.
 @Component({
   selector: 'app-reservas',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-<<<<<<< HEAD
     <div class="contenedor-principal">
       <div class="contenido-ancho">
+        
+        <!-- Tarjeta de Formulario -->
         <div class="tarjeta animate-fade-in">
           <h2>{{ editandoId ? 'Reprogramar reserva' : 'Nueva reserva' }}</h2>
           <form (ngSubmit)="guardar()">
             <label *ngIf="!editandoId">
               Cliente
               <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
+                <option value="" disabled selected>Seleccione un cliente...</option>
                 <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
               </select>
             </label>
             <label *ngIf="!editandoId">
               Cancha
               <select name="canchaId" [(ngModel)]="formulario.canchaId" required>
+                <option value="" disabled selected>Seleccione una cancha...</option>
                 <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }} — &#36;{{ c.tarifaBasePorHora }}/h</option>
               </select>
             </label>
             <label>Hora inicio <input name="horaInicio" type="datetime-local" [(ngModel)]="formulario.horaInicio" required /></label>
             <label>Hora fin <input name="horaFin" type="datetime-local" [(ngModel)]="formulario.horaFin" required /></label>
-            <button type="submit">{{ editandoId ? 'Guardar cambios' : 'Reservar' }}</button>
-            <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar edición</button>
+            
+            <div style="grid-column: 1 / -1; display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+              <button type="submit">{{ editandoId ? 'Guardar cambios' : 'Crear reserva' }}</button>
+              <button type="button" *ngIf="editandoId" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar edición</button>
+            </div>
           </form>
-          <p class="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
+          <p *ngIf="mensaje" [class]="mensajeTipo" style="margin-top: 1rem;">{{ mensaje }}</p>
         </div>
 
+        <!-- Tarjeta de Listado -->
         <div class="tarjeta animate-fade-in">
-          <h2>Reservas</h2>
+          <h2>Lista de reservas</h2>
           <ul>
             <li *ngFor="let r of reservas">
-              {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — {{ r.estado }} — &#36;{{ r.monto }}
-              <div>{{ r.horaInicio | date: 'short' }} a {{ r.horaFin | date: 'short' }}</div>
-              <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">Reprogramar</button>
-              <button type="button" *ngIf="r.estado === 'PENDIENTE'" (click)="confirmar(r.id)">Confirmar</button>
-              <button type="button" *ngIf="r.estado !== 'CANCELADA'" (click)="cancelar(r.id)">Cancelar</button>
-              <button type="button" (click)="eliminar(r.id)">Borrar</button>
+              <div>
+                <strong>{{ r.cancha?.nombre || 'Cancha' }}</strong> — {{ r.cliente?.nombre || 'Cliente' }} (&#36;{{ r.monto }})
+                <br />
+                <small>{{ r.horaInicio | date: 'short' }} a {{ r.horaFin | date: 'short' }}</small>
+                <br />
+                <span class="etiqueta-estado" [style.color]="r.estado === 'PENDIENTE' ? '#d97706' : r.estado === 'CONFIRMADA' ? '#1b4332' : '#dc2626'">
+                  Estado: {{ r.estado }}
+                </span>
+              </div>
+              <div class="acciones">
+                <button type="button" class="btn-sm" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">Reprogramar</button>
+                <button type="button" class="btn-sm btn-confirmar" *ngIf="r.estado === 'PENDIENTE'" (click)="confirmar(r.id)">Confirmar</button>
+                <button type="button" class="btn-sm btn-cancelar" *ngIf="r.estado !== 'CANCELADA'" (click)="cancelar(r.id)">Cancelar</button>
+                <button type="button" class="btn-sm btn-borrar" (click)="eliminar(r.id)">Borrar</button>
+              </div>
             </li>
-            <li *ngIf="reservas.length === 0">Sin reservas todavía.</li>
+            <li *ngIf="reservas.length === 0" style="text-align: center; color: #334155; border-left: none; padding: 1.5rem; background: transparent;">
+              Sin reservas todavía.
+            </li>
           </ul>
         </div>
-      </div>
-=======
-    <div class="tarjeta">
-      <h2>{{ editandoId ? 'Reprogramar reserva' : 'Nueva reserva' }}</h2>
-      <form (ngSubmit)="guardar()">
-        <label *ngIf="!editandoId">
-          Cliente
-          <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
-            <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
-          </select>
-        </label>
-        <label *ngIf="!editandoId">
-          Cancha
-          <select name="canchaId" [(ngModel)]="formulario.canchaId" required>
-            <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
-          </select>
-        </label>
-        <label>
-          Hora inicio
-          <input type="datetime-local" name="horaInicio" [(ngModel)]="formulario.horaInicio" required />
-        </label>
-        <label>
-          Hora fin
-          <input type="datetime-local" name="horaFin" [(ngModel)]="formulario.horaFin" required />
-        </label>
-        <button type="submit">{{ editandoId ? 'Guardar horario' : 'Crear reserva' }}</button>
-        <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar</button>
-      </form>
-    </div>
 
-    <div class="tarjeta">
-      <h2>Lista de reservas</h2>
-      <p *ngIf="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
-      <ul>
-        <li *ngFor="let r of reservas">
-          <div>
-            <strong>{{ r.cancha?.nombre || $any(r).canchaId }}</strong> — {{ r.cliente?.nombre || $any(r).clienteId }}
-            <br />
-            <small>{{ r.horaInicio }} a {{ r.horaFin }}</small>
-            <br />
-            <span *ngIf="r.estado" class="etiqueta-estado">Estado: {{ r.estado }}</span>
-          </div>
-          <div class="acciones">
-            <button type="button" class="btn-sm" (click)="editar(r)">Editar horario</button>
-            <button type="button" class="btn-sm btn-confirmar" (click)="confirmar(r.id)">Confirmar</button>
-            <button type="button" class="btn-sm btn-cancelar" (click)="cancelar(r.id)">Cancelar reserva</button>
-            <button type="button" class="btn-sm btn-borrar" (click)="eliminar(r.id)">Borrar</button>
-          </div>
-        </li>
-        <li *ngIf="reservas.length === 0">Sin reservas todavía.</li>
-      </ul>
->>>>>>> main
+      </div>
     </div>
   `,
   styles: [`
     :host {
       display: block;
-      max-width: 850px;
-      margin: 1.5rem auto;
-      padding: 0 1rem;
       font-family: system-ui, -apple-system, sans-serif;
     }
 
     .tarjeta {
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-radius: 12px;
       padding: 1.8rem;
       margin-bottom: 2rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
     h2 {
       margin-top: 0;
       color: #1b4332;
       font-size: 1.4rem;
-      border-bottom: 2px solid #f1f5f9;
+      border-bottom: 2px solid rgba(27, 67, 50, 0.15);
       padding-bottom: 0.5rem;
     }
 
     form {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.2rem;
       margin-top: 1rem;
     }
@@ -144,7 +110,7 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       gap: 0.4rem;
       font-weight: 600;
       font-size: 0.88rem;
-      color: #334155;
+      color: #0f172a;
     }
 
     input, select {
@@ -153,16 +119,17 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
       font-size: 0.95rem;
-      background-color: #f8fafc;
+      background-color: rgba(255, 255, 255, 0.85);
       box-sizing: border-box;
       transition: all 0.2s ease;
+      color: #0f172a;
     }
 
     input:focus, select:focus {
       outline: none;
       border-color: #2d6a4f;
       background-color: #ffffff;
-      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.15);
+      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.2);
     }
 
     button {
@@ -191,15 +158,25 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
     }
 
     li {
-      background: #f8fafc;
+      background: rgba(255, 255, 255, 0.65);
       border-left: 4px solid #2d6a4f;
       padding: 1rem;
-      border-radius: 6px;
+      border-radius: 0 8px 8px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      color: #0f172a;
+    }
+
+    li strong {
+      color: #0f172a;
+    }
+
+    li small {
+      color: #334155;
+      font-weight: 500;
     }
 
     .acciones {
@@ -236,21 +213,24 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 
     .etiqueta-estado {
       font-size: 0.8rem;
-      font-weight: 600;
-      color: #475569;
+      font-weight: 700;
     }
 
     .mensaje-exito {
-      background-color: #d1fae5;
+      background-color: rgba(209, 250, 229, 0.9);
       color: #065f46;
       padding: 0.8rem;
       border-radius: 6px;
+      font-weight: 500;
+      border: 1px solid #bbf7d0;
     }
     .mensaje-error {
-      background-color: #fee2e2;
+      background-color: rgba(254, 226, 226, 0.9);
       color: #991b1b;
       padding: 0.8rem;
       border-radius: 6px;
+      font-weight: 500;
+      border: 1px solid #fecaca;
     }
   `]
 })
