@@ -7,7 +7,6 @@ import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
-import { EditarReservaDto } from './dto/editar-reserva.dto';
 
 @Injectable()
 export class ReservasService {
@@ -102,30 +101,6 @@ export class ReservasService {
     return reserva;
   }
 
-  async editar(id: string, dto: EditarReservaDto): Promise<Reserva> {
-    const reserva = await this.obtenerPorId(id);
-    if (reserva.estado !== 'PENDIENTE') {
-      throw new BadRequestException('Solo se puede reprogramar una reserva pendiente');
-    }
-
-    const horaInicio = dto.horaInicio ? new Date(dto.horaInicio) : reserva.horaInicio;
-    const horaFin = dto.horaFin ? new Date(dto.horaFin) : reserva.horaFin;
-    if (horaInicio < new Date()) {
-      throw new BadRequestException('No se puede reprogramar a una fecha u hora que ya pasó');
-    }
-    if (horaFin <= horaInicio) {
-      throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
-    }
-    if (await this.haySolapamiento(reserva.cancha.id, horaInicio, horaFin)) {
-      throw new BadRequestException('La cancha ya tiene una reserva confirmada en ese horario');
-    }
-
-    reserva.horaInicio = horaInicio;
-    reserva.horaFin = horaFin;
-    reserva.monto = reserva.calcularPrecio();
-    return this.reservasRepository.save(reserva);
-  }
-
   async confirmar(id: string): Promise<Reserva> {
     const reserva = await this.obtenerPorId(id);
     reserva.confirmar();
@@ -139,14 +114,6 @@ export class ReservasService {
     const reservaGuardada = await this.reservasRepository.save(reserva);
     await this.notificar(reservaGuardada, 'CANCELACION', 'Tu reserva fue cancelada.');
     return reservaGuardada;
-  }
-
-  async eliminar(id: string): Promise<void> {
-    const reserva = await this.obtenerPorId(id);
-    if (reserva.estado !== 'PENDIENTE') {
-      throw new BadRequestException('Solo se puede eliminar una reserva pendiente; cancélala en su lugar');
-    }
-    await this.reservasRepository.remove(reserva);
   }
 
   // consultarDisponibilidad(): CU-01 — informa si una cancha está libre en un horario dado.

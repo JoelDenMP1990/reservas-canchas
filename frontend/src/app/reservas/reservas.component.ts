@@ -5,7 +5,7 @@ import { Reserva, ReservasService } from './reservas.service';
 import { Cliente, ClientesService } from '../clientes/clientes.service';
 import { Cancha, CanchasService } from '../canchas/canchas.service';
 
-// Pantalla CRUD de Reserva: listar, crear, editar horario, confirmar, cancelar, borrar.
+// Pantalla de Reserva: crear (CU-02), confirmar, cancelar (CU-03).
 @Component({
   selector: 'app-reservas',
   standalone: true,
@@ -14,21 +14,21 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
     <div class="contenedor-principal">
     <div class="contenido-ancho">
     <div class="tarjeta animate-fade-in">
-      <h2>{{ editandoId ? 'Reprogramar reserva' : 'Nueva reserva' }}</h2>
+      <h2>Nueva reserva</h2>
       <form (ngSubmit)="guardar()">
-        <label *ngIf="!editandoId">
+        <label>
           Cliente
           <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
             <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
           </select>
         </label>
-        <label *ngIf="!editandoId">
+        <label>
           Cancha
           <select name="canchaId" [(ngModel)]="formulario.canchaId" required>
             <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
           </select>
         </label>
-        <label *ngIf="!editandoId">
+        <label>
           Método de pago
           <select name="metodoPago" [(ngModel)]="formulario.metodoPago" required>
             <option value="EFECTIVO">Efectivo</option>
@@ -50,8 +50,7 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
           Hora fin
           <input type="datetime-local" name="horaFin" [(ngModel)]="formulario.horaFin" required />
         </label>
-        <button type="submit">{{ editandoId ? 'Guardar horario' : 'Crear reserva' }}</button>
-        <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar</button>
+        <button type="submit">Crear reserva</button>
       </form>
       <p *ngIf="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
     </div>
@@ -68,9 +67,6 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
             <span *ngIf="r.estado" class="etiqueta-estado">Estado: {{ r.estado }}</span>
           </div>
           <div class="acciones">
-            <button type="button" class="btn-sm" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">
-              Editar horario
-            </button>
             <button
               type="button"
               class="btn-sm btn-confirmar"
@@ -86,14 +82,6 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
               (click)="cancelar(r.id)"
             >
               Cancelar reserva
-            </button>
-            <button
-              type="button"
-              class="btn-sm btn-borrar"
-              *ngIf="r.estado === 'PENDIENTE'"
-              (click)="eliminar(r.id)"
-            >
-              Borrar
             </button>
           </div>
         </li>
@@ -225,13 +213,6 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       background-color: #b45309;
     }
 
-    .btn-borrar {
-      background-color: #dc2626;
-    }
-    .btn-borrar:hover {
-      background-color: #b91c1c;
-    }
-
     .etiqueta-estado {
       font-size: 0.8rem;
       font-weight: 600;
@@ -263,7 +244,6 @@ export class ReservasComponent implements OnInit {
     horaFin: '',
     metodoPago: 'EFECTIVO',
   };
-  editandoId: string | null = null;
   mensaje = '';
   mensajeTipo = '';
   minFechaHora = ReservasComponent.formatearFechaLocal(new Date());
@@ -287,15 +267,11 @@ export class ReservasComponent implements OnInit {
   guardar(): void {
     const { clienteId, canchaId, horaInicio, horaFin, metodoPago } = this.formulario;
 
-    const operacion = this.editandoId
-      ? this.reservasService.editar(this.editandoId, { horaInicio, horaFin })
-      : this.reservasService.crear({ clienteId, canchaId, horaInicio, horaFin, metodoPago });
-
-    operacion.subscribe({
+    this.reservasService.crear({ clienteId, canchaId, horaInicio, horaFin, metodoPago }).subscribe({
       next: () => {
-        this.mensaje = this.editandoId ? 'Reserva reprogramada.' : 'Reserva creada.';
+        this.mensaje = 'Reserva creada.';
         this.mensajeTipo = 'mensaje-exito';
-        this.cancelarEdicion();
+        this.formulario = { clienteId: '', canchaId: '', horaInicio: '', horaFin: '', metodoPago: 'EFECTIVO' };
         this.refrescar();
       },
       error: (err: any) => {
@@ -305,31 +281,9 @@ export class ReservasComponent implements OnInit {
     });
   }
 
-  editar(reserva: any): void {
-    this.editandoId = reserva.id;
-    this.formulario = {
-      clienteId: reserva.cliente?.id ?? reserva.clienteId ?? '',
-      canchaId: reserva.cancha?.id ?? reserva.canchaId ?? '',
-      horaInicio: reserva.horaInicio ? this.aFechaLocal(reserva.horaInicio) : '',
-      horaFin: reserva.horaFin ? this.aFechaLocal(reserva.horaFin) : '',
-      metodoPago: 'EFECTIVO',
-    };
-  }
-
-  // aFechaLocal(): convierte un ISO UTC (con "Z") al valor que espera un input datetime-local,
-  // en la hora local del navegador (evita el desfase que se veía al reprogramar una reserva).
-  private aFechaLocal(fechaIso: string): string {
-    return ReservasComponent.formatearFechaLocal(new Date(fechaIso));
-  }
-
   private static formatearFechaLocal(fecha: Date): string {
     const pad = (n: number) => n.toString().padStart(2, '0');
     return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
-  }
-
-  cancelarEdicion(): void {
-    this.editandoId = null;
-    this.formulario = { clienteId: '', canchaId: '', horaInicio: '', horaFin: '', metodoPago: 'EFECTIVO' };
   }
 
   confirmar(id: string): void {
@@ -344,15 +298,6 @@ export class ReservasComponent implements OnInit {
       next: () => this.refrescar(),
       error: (err: any) => this.mostrarError(err),
     });
-  }
-
-  eliminar(id: string): void {
-    if (confirm('¿Está seguro de eliminar esta reserva?')) {
-      this.reservasService.eliminar(id).subscribe({
-        next: () => this.refrescar(),
-        error: (err: any) => this.mostrarError(err),
-      });
-    }
   }
 
   private mostrarError(err: any): void {

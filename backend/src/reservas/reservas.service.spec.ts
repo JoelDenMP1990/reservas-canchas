@@ -12,7 +12,7 @@ describe('ReservasService', () => {
   let service: ReservasService;
   let clientesRepositorio: { findOneBy: jest.Mock };
   let canchasRepositorio: { findOneBy: jest.Mock };
-  let reservasRepositorio: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock; remove: jest.Mock };
+  let reservasRepositorio: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock };
   let pagosRepositorio: { create: jest.Mock; save: jest.Mock };
   let notificacionesRepositorio: { create: jest.Mock; save: jest.Mock };
 
@@ -23,7 +23,6 @@ describe('ReservasService', () => {
       create: jest.fn((datos) => Object.assign(new Reserva(), datos)),
       save: jest.fn((reserva) => Promise.resolve(reserva)),
       findOne: jest.fn(),
-      remove: jest.fn(),
     };
     pagosRepositorio = {
       create: jest.fn((datos) => Object.assign(new Pago(), datos)),
@@ -185,41 +184,6 @@ describe('ReservasService', () => {
     expect(disponible).toBe(false);
   });
 
-  it('editar() rechaza reprogramar a un horario ya ocupado por otra reserva confirmada', async () => {
-    const cancha = Object.assign(new Cancha(), { id: 'cancha-1' });
-    const reserva = Object.assign(new Reserva(), {
-      id: 'reserva-1',
-      estado: 'PENDIENTE',
-      cancha,
-      horaInicio: new Date(Date.now() + 3 * 60 * 60 * 1000),
-      horaFin: new Date(Date.now() + 4 * 60 * 60 * 1000),
-    });
-    reservasRepositorio.findOne
-      .mockResolvedValueOnce(reserva)
-      .mockResolvedValueOnce(Object.assign(new Reserva(), { id: 'otra-reserva' }));
-
-    await expect(
-      service.editar('reserva-1', {
-        horaInicio: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-        horaFin: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-
-  it('editar() rechaza reprogramar a una hora de inicio en el pasado', async () => {
-    const reserva = Object.assign(new Reserva(), {
-      id: 'reserva-1',
-      estado: 'PENDIENTE',
-      horaInicio: new Date(Date.now() + 3 * 60 * 60 * 1000),
-      horaFin: new Date(Date.now() + 4 * 60 * 60 * 1000),
-    });
-    reservasRepositorio.findOne.mockResolvedValue(reserva);
-
-    await expect(
-      service.editar('reserva-1', { horaInicio: '2020-01-01T10:00:00' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-
   it('cancelar() notifica al cliente cuando faltan al menos 2 horas para el inicio', async () => {
     const reserva = Object.assign(new Reserva(), {
       id: 'reserva-1',
@@ -248,21 +212,4 @@ describe('ReservasService', () => {
     expect(notificacionesRepositorio.save).not.toHaveBeenCalled();
   });
 
-  it('eliminar() rechaza borrar una reserva que ya no está pendiente', async () => {
-    const reserva = Object.assign(new Reserva(), { id: 'reserva-1', estado: 'CONFIRMADA' });
-    reservasRepositorio.findOne.mockResolvedValue(reserva);
-
-    await expect(service.eliminar('reserva-1')).rejects.toBeInstanceOf(BadRequestException);
-    expect(reservasRepositorio.remove).not.toHaveBeenCalled();
-  });
-
-  it('eliminar() borra una reserva pendiente', async () => {
-    const reserva = Object.assign(new Reserva(), { id: 'reserva-1', estado: 'PENDIENTE' });
-    reservasRepositorio.findOne.mockResolvedValue(reserva);
-    reservasRepositorio.remove.mockResolvedValue(undefined);
-
-    await service.eliminar('reserva-1');
-
-    expect(reservasRepositorio.remove).toHaveBeenCalledWith(reserva);
-  });
 });

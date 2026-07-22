@@ -1,7 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ReservasService } from './reservas.service';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
-import { EditarReservaDto } from './dto/editar-reserva.dto';
 
 @Controller('reservas')
 export class ReservasController {
@@ -34,11 +33,6 @@ export class ReservasController {
     return this.reservasService.crear(dto);
   }
 
-  @Patch(':id')
-  editar(@Param('id') id: string, @Body() dto: EditarReservaDto) {
-    return this.reservasService.editar(id, dto);
-  }
-
   @Post(':id/confirmar')
   confirmar(@Param('id') id: string) {
     return this.reservasService.confirmar(id);
@@ -47,10 +41,5 @@ export class ReservasController {
   @Post(':id/cancelar')
   cancelar(@Param('id') id: string) {
     return this.reservasService.cancelar(id);
-  }
-
-  @Delete(':id')
-  eliminar(@Param('id') id: string) {
-    return this.reservasService.eliminar(id);
   }
 }

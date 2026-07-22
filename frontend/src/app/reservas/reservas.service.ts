@@ -33,19 +33,11 @@ export class ReservasService {
     return this.http.post<Reserva>(`${API_BASE_URL}/reservas`, datos);
   }
 
-  editar(id: string, datos: { horaInicio?: string; horaFin?: string }): Observable<Reserva> {
-    return this.http.patch<Reserva>(`${API_BASE_URL}/reservas/${id}`, datos);
-  }
-
   confirmar(id: string): Observable<Reserva> {
     return this.http.post<Reserva>(`${API_BASE_URL}/reservas/${id}/confirmar`, {});
   }
 
   cancelar(id: string): Observable<Reserva> {
     return this.http.post<Reserva>(`${API_BASE_URL}/reservas/${id}/cancelar`, {});
-  }
-
-  eliminar(id: string): Observable<void> {
-    return this.http.delete<void>(`${API_BASE_URL}/reservas/${id}`);
   }
 }
