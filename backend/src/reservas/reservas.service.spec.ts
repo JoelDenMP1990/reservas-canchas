@@ -12,7 +12,7 @@ describe('ReservasService', () => {
   let service: ReservasService;
   let clientesRepositorio: { findOneBy: jest.Mock };
   let canchasRepositorio: { findOneBy: jest.Mock };
-  let reservasRepositorio: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock };
+  let reservasRepositorio: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock; remove: jest.Mock };
   let pagosRepositorio: { create: jest.Mock; save: jest.Mock };
   let notificacionesRepositorio: { create: jest.Mock; save: jest.Mock };
 
@@ -23,6 +23,7 @@ describe('ReservasService', () => {
       create: jest.fn((datos) => Object.assign(new Reserva(), datos)),
       save: jest.fn((reserva) => Promise.resolve(reserva)),
       findOne: jest.fn(),
+      remove: jest.fn(),
     };
     pagosRepositorio = {
       create: jest.fn((datos) => Object.assign(new Pago(), datos)),
@@ -130,5 +131,23 @@ describe('ReservasService', () => {
 
     await expect(service.cancelar('reserva-1')).rejects.toBeInstanceOf(BadRequestException);
     expect(notificacionesRepositorio.save).not.toHaveBeenCalled();
+  });
+
+  it('eliminar() rechaza borrar una reserva que ya no está pendiente', async () => {
+    const reserva = Object.assign(new Reserva(), { id: 'reserva-1', estado: 'CONFIRMADA' });
+    reservasRepositorio.findOne.mockResolvedValue(reserva);
+
+    await expect(service.eliminar('reserva-1')).rejects.toBeInstanceOf(BadRequestException);
+    expect(reservasRepositorio.remove).not.toHaveBeenCalled();
+  });
+
+  it('eliminar() borra una reserva pendiente', async () => {
+    const reserva = Object.assign(new Reserva(), { id: 'reserva-1', estado: 'PENDIENTE' });
+    reservasRepositorio.findOne.mockResolvedValue(reserva);
+    reservasRepositorio.remove.mockResolvedValue(undefined);
+
+    await service.eliminar('reserva-1');
+
+    expect(reservasRepositorio.remove).toHaveBeenCalledWith(reserva);
   });
 });

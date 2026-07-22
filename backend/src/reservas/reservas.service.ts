@@ -121,6 +121,9 @@ export class ReservasService {
 
   async eliminar(id: string): Promise<void> {
     const reserva = await this.obtenerPorId(id);
+    if (reserva.estado !== 'PENDIENTE') {
+      throw new BadRequestException('Solo se puede eliminar una reserva pendiente; cancélala en su lugar');
+    }
     await this.reservasRepository.remove(reserva);
   }
 

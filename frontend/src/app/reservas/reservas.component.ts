@@ -63,7 +63,14 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
             <button type="button" class="btn-sm" (click)="editar(r)">Editar horario</button>
             <button type="button" class="btn-sm btn-confirmar" (click)="confirmar(r.id)">Confirmar</button>
             <button type="button" class="btn-sm btn-cancelar" (click)="cancelar(r.id)">Cancelar reserva</button>
-            <button type="button" class="btn-sm btn-borrar" (click)="eliminar(r.id)">Borrar</button>
+            <button
+              type="button"
+              class="btn-sm btn-borrar"
+              *ngIf="r.estado === 'PENDIENTE'"
+              (click)="eliminar(r.id)"
+            >
+              Borrar
+            </button>
           </div>
         </li>
         <li *ngIf="reservas.length === 0">Sin reservas todavía.</li>
@@ -288,16 +295,30 @@ export class ReservasComponent implements OnInit {
   }
 
   confirmar(id: string): void {
-    this.reservasService.confirmar(id).subscribe(() => this.refrescar());
+    this.reservasService.confirmar(id).subscribe({
+      next: () => this.refrescar(),
+      error: (err: any) => this.mostrarError(err),
+    });
   }
 
   cancelar(id: string): void {
-    this.reservasService.cancelar(id).subscribe(() => this.refrescar());
+    this.reservasService.cancelar(id).subscribe({
+      next: () => this.refrescar(),
+      error: (err: any) => this.mostrarError(err),
+    });
   }
 
   eliminar(id: string): void {
     if (confirm('¿Está seguro de eliminar esta reserva?')) {
-      this.reservasService.eliminar(id).subscribe(() => this.refrescar());
+      this.reservasService.eliminar(id).subscribe({
+        next: () => this.refrescar(),
+        error: (err: any) => this.mostrarError(err),
+      });
     }
+  }
+
+  private mostrarError(err: any): void {
+    this.mensaje = err.error?.message ?? 'No se pudo completar la operación.';
+    this.mensajeTipo = 'mensaje-error';
   }
 }
