@@ -11,83 +11,78 @@ import { Reserva, ReservasService } from '../reservas/reservas.service';
   imports: [CommonModule, FormsModule],
 
  template: `
-  <div class="tarjeta">
-    <h2>💳 Gestión de Pagos</h2>
-    <p>Registra los pagos y consulta los pagos realizados.</p>
+  <div class="contenedor-principal">
+    <div class="contenido-ancho">
+      <div class="tarjeta animate-fade-in">
+        <h2>💳 Gestión de Pagos</h2>
+        <p>Registra los pagos y consulta los pagos realizados.</p>
 
-    <form (ngSubmit)="guardar()">
+        <form (ngSubmit)="guardar()">
 
-      <label>
-        Reserva
-        <select name="reservaId" [(ngModel)]="formulario.reservaId" required>
-          <option *ngFor="let r of reservasPendientes" [value]="r.id">
-            {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — &#36;{{ r.monto }}
-          </option>
-        </select>
-      </label>
+          <label>
+            Reserva
+            <select name="reservaId" [(ngModel)]="formulario.reservaId" required>
+              <option *ngFor="let r of reservasPendientes" [value]="r.id">
+                {{ r.cliente?.nombre }} — {{ r.cancha?.nombre }} — &#36;{{ r.monto }}
+              </option>
+            </select>
+          </label>
 
-      <div class="campo">
-        <label>Monto ($)</label>
-        <input
-          name="monto"
-          type="number"
-          min="0"
-          [(ngModel)]="formulario.monto"
-          required
-        />
+          <div class="campo">
+            <label>Monto ($)</label>
+            <input
+              name="monto"
+              type="number"
+              min="0"
+              [(ngModel)]="formulario.monto"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label>Método de pago</label>
+            <input
+              name="metodoPago"
+              [(ngModel)]="formulario.metodoPago"
+              required
+            />
+          </div>
+
+          <button class="btn-guardar" type="submit">
+            💳 Procesar Pago
+          </button>
+
+        </form>
+
+        <p class="mensaje" [class]="mensajeTipo">
+          {{ mensaje }}
+        </p>
       </div>
 
-      <div class="campo">
-        <label>Método de pago</label>
-        <input
-          name="metodoPago"
-          [(ngModel)]="formulario.metodoPago"
-          required
-        />
+      <div class="tarjeta animate-fade-in">
+        <h2>📋 Historial de Pagos</h2>
+
+        <ul>
+          <li *ngFor="let p of pagos">
+            &#36;{{ p.monto }} —
+            {{ p.metodoPago }} —
+            {{ p.procesadoEn | date:'short' }}
+
+            <button type="button" (click)="eliminar(p.id)">
+              Borrar
+            </button>
+          </li>
+
+          <li *ngIf="pagos.length === 0">
+            Sin pagos todavía.
+          </li>
+        </ul>
       </div>
-
-      <button class="btn-guardar" type="submit">
-        💳 Procesar Pago
-      </button>
-
-    </form>
-
-    <p class="mensaje" [class]="mensajeTipo">
-      {{ mensaje }}
-    </p>
-  </div>
-
-  <div class="tarjeta">
-    <h2>📋 Historial de Pagos</h2>
-
-    <ul>
-      <li *ngFor="let p of pagos">
-        &#36;{{ p.monto }} —
-        {{ p.metodoPago }} —
-        {{ p.procesadoEn | date:'short' }}
-
-        <button type="button" (click)="eliminar(p.id)">
-          Borrar
-        </button>
-      </li>
-
-      <li *ngIf="pagos.length === 0">
-        Sin pagos todavía.
-      </li>
-    </ul>
+    </div>
   </div>
 `,
 
   styles: [`
-    .tarjeta{
-      max-width:700px;
-      margin:20px auto;
-      padding:20px;
-      border-radius:12px;
-      background:#ffffff;
-      box-shadow:0 4px 10px rgba(0,0,0,.15);
-    }
-
     .campo{
       margin-bottom:15px;
     }
@@ -103,6 +98,7 @@ import { Reserva, ReservasService } from '../reservas/reservas.service';
       padding:10px;
       border:1px solid #ccc;
       border-radius:8px;
+      box-sizing:border-box;
     }
 
     .btn-guardar{
@@ -120,7 +116,7 @@ import { Reserva, ReservasService } from '../reservas/reservas.service';
     }
 
     li{
-      background:#f8f9fa;
+      background:rgba(248, 249, 250, 0.9);
       margin:8px 0;
       padding:10px;
       border-radius:8px;

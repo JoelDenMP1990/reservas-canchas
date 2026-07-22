@@ -1,13 +1,17 @@
+/* =========================================
+   ESTILOS GLOBALES (src/styles.css)
+   ========================================= */
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
   padding: 0;
-  background-image: url('./assets/Cancha- Reserva.jpg');
+  /* Fondo global: Degradado verde + tu imagen local */
+  background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
+              url('./assets/Cancha- Reserva.jpg') no-repeat center center fixed;
   background-size: cover;
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
   color: #222;
+  min-height: 100vh;
 }
 
 header {
@@ -28,19 +32,40 @@ nav a.activo {
 }
 
 main {
-  max-width: 1200px;
+  max-width: 1200px; 
   margin: 1.5rem auto;
   padding: 0 1rem;
 }
 
-.tarjeta {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(6px);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+/* =========================================
+   CONTENEDORES Y TARJETAS
+   ========================================= */
+
+.contenedor-principal {
+  /* Ya no necesita el background, solo organiza el espacio */
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
+
+.contenido-ancho {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tarjeta {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* =========================================
+   FORMULARIOS Y BOTONES
+   ========================================= */
 
 form label {
   display: block;
@@ -54,7 +79,7 @@ form select {
   padding: 0.5rem 0.75rem;
   box-sizing: border-box;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 6px; 
   margin-top: 0.25rem;
 }
 
@@ -80,13 +105,12 @@ button:hover {
   background: #143326;
 }
 
-.mensaje.exito {
-  color: #1b4332;
-}
+/* =========================================
+   COMPONENTES ESPECÍFICOS (Insignias, etc)
+   ========================================= */
 
-.mensaje.error {
-  color: #b3261e;
-}
+.mensaje.exito { color: #1b4332; }
+.mensaje.error { color: #b3261e; }
 
 .linea-tiempo {
   list-style: none;
@@ -113,56 +137,22 @@ button:hover {
   color: #333;
 }
 
-.insignia-confirmacion {
-  background: #d8f0e0;
-  color: #1b4332;
+.insignia-confirmacion { background: #d8f0e0; color: #1b4332; }
+.insignia-cancelacion { background: #fbdcd9; color: #b3261e; }
+.insignia-recordatorio { background: #fdecc8; color: #8a5a00; }
+.insignia-pago { background: #d9e8fb; color: #1a4a8a; }
+
+.mensaje-texto { margin: 0.5rem 0 0.25rem; }
+.linea-tiempo small { color: #666; }
+.linea-tiempo button { margin-left: 0.75rem; padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+
+app-clientes { display: block; }
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
-.insignia-cancelacion {
-  background: #fbdcd9;
-  color: #b3261e;
-}
-
-.insignia-recordatorio {
-  background: #fdecc8;
-  color: #8a5a00;
-}
-
-.insignia-pago {
-  background: #d9e8fb;
-  color: #1a4a8a;
-}
-
-.mensaje-texto {
-  margin: 0.5rem 0 0.25rem;
-}
-
-.linea-tiempo small {
-  color: #666;
-}
-
-.linea-tiempo button {
-  margin-left: 0.75rem;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.8rem;
-}
-
-/* Centrar el contenido de la pantalla de Clientes */
-app-clientes {
-  display: block;
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 0 20px;
-}
-
-.contenedor-principal {
-  width: 100vw;
-  min-height: calc(100vh - 70px);
-  margin-left: calc(-50vw + 50%);
-  padding: 40px 20px;
-  background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-              url('https://images.unsplash.com/photo-1493538706211-316874a1e8b4?auto=format&fit=crop&w=2000&q=80') no-repeat center center scroll;
-  background-size: cover;
-  box-sizing: border-box;
-  position: relative;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
