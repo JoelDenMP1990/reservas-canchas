@@ -27,6 +27,14 @@ describe('Reserva', () => {
     expect(reserva.estado).toBe('CONFIRMADA');
   });
 
+  it('cancelar() rechaza cancelar una reserva que ya está cancelada', () => {
+    const reserva = new Reserva();
+    reserva.estado = 'CANCELADA';
+    reserva.horaInicio = new Date(Date.now() + 3 * 60 * 60 * 1000);
+
+    expect(() => reserva.cancelar()).toThrow(BadRequestException);
+  });
+
   it('calcularPrecio() multiplica las horas reservadas por la tarifa de la cancha', () => {
     const cancha = new Cancha();
     cancha.tarifaBasePorHora = 10;

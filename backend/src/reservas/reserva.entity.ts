@@ -45,6 +45,9 @@ export class Reserva {
 
   // cancelar(): libera la reserva; exige al menos 2 horas de anticipación al inicio.
   cancelar(): void {
+    if (this.estado === 'CANCELADA') {
+      throw new BadRequestException('La reserva ya está cancelada');
+    }
     const minutosParaInicio = (this.horaInicio.getTime() - Date.now()) / (1000 * 60);
     if (minutosParaInicio < 120) {
       throw new BadRequestException('Solo se puede cancelar una reserva con al menos 2 horas de anticipación');

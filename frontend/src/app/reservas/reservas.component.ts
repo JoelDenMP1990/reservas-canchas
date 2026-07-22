@@ -60,9 +60,25 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
             <span *ngIf="r.estado" class="etiqueta-estado">Estado: {{ r.estado }}</span>
           </div>
           <div class="acciones">
-            <button type="button" class="btn-sm" (click)="editar(r)">Editar horario</button>
-            <button type="button" class="btn-sm btn-confirmar" (click)="confirmar(r.id)">Confirmar</button>
-            <button type="button" class="btn-sm btn-cancelar" (click)="cancelar(r.id)">Cancelar reserva</button>
+            <button type="button" class="btn-sm" *ngIf="r.estado === 'PENDIENTE'" (click)="editar(r)">
+              Editar horario
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-confirmar"
+              *ngIf="r.estado === 'PENDIENTE'"
+              (click)="confirmar(r.id)"
+            >
+              Confirmar
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-cancelar"
+              *ngIf="r.estado !== 'CANCELADA'"
+              (click)="cancelar(r.id)"
+            >
+              Cancelar reserva
+            </button>
             <button
               type="button"
               class="btn-sm btn-borrar"
