@@ -272,7 +272,6 @@ import { Cliente, ClientesService } from './clientes.service';
       gap: 16px;
     }
 
-    /* Avatar por defecto para Hombres (Tonos Verdes/Azules) */
     .avatar-inicial {
       width: 44px;
       height: 44px;
@@ -287,7 +286,6 @@ import { Cliente, ClientesService } from './clientes.service';
       flex-shrink: 0;
     }
 
-    /* Avatar para Mujeres (Tonos Rosas/Rojos elegantes) */
     .avatar-mujer {
       background: linear-gradient(135deg, #be185d, #e11d48) !important;
       box-shadow: 0 4px 10px rgba(190, 24, 93, 0.3) !important;
@@ -403,24 +401,20 @@ export class ClientesComponent implements OnInit {
     return cliente.id;
   }
 
-  // Función para determinar si el nombre es femenino (evalúa nombres comunes o terminación en 'a')
   esMujer(nombre: string): boolean {
     if (!nombre) return false;
     const primerNombre = nombre.trim().toLowerCase().split(' ')[0];
     
-    // Lista de nombres femeninos comunes que no necesariamente terminan en 'a'
     const nombresFemeninosExcepcion = ['carmen', 'beatriz', 'raquel', 'isabel', 'pilar', 'mercedes', 'luz', 'ruth', 'inés'];
     if (nombresFemeninosExcepcion.includes(primerNombre)) {
       return true;
     }
 
-    // Nombres masculinos comunes que terminan en 'a' para evitar falsos positivos
     const nombresMasculinosExcepcion = ['luca', 'andrea', 'nicola', 'elías', 'josué', 'borja'];
     if (nombresMasculinosExcepcion.includes(primerNombre)) {
       return false;
     }
 
-    // Regla general: si termina en 'a', se asume femenino
     return primerNombre.endsWith('a');
   }
 
@@ -474,10 +468,15 @@ export class ClientesComponent implements OnInit {
       this.clientesService
         .eliminar(id)
         .pipe(take(1))
-        .subscribe(() => {
-          this.mostrarMensaje('Cliente eliminado correctamente.', 'exito');
-          delete this.reservasActivasPorCliente[id];
-          this.refrescar();
+        .subscribe({
+          next: () => {
+            this.mostrarMensaje('Cliente eliminado correctamente.', 'exito');
+            delete this.reservasActivasPorCliente[id];
+            this.refrescar();
+          },
+          error: (error) => {
+            this.mostrarMensaje(this.formatearMensajeError(error), 'error');
+          }
         });
     }
   }
@@ -505,19 +504,19 @@ export class ClientesComponent implements OnInit {
     this.mensajeTimeoutId = setTimeout(() => {
       this.mensaje = '';
       this.mensajeTipo = '';
-    }, 3000);
+    }, 4000);
   }
 
   private formatearMensajeError(error: any): string {
-    let mensajeError = error?.error?.message ?? 'No se pudo guardar el cliente.';
+    let mensajeError = error?.error?.message ?? 'No se pudo completar la operación.';
 
     if (Array.isArray(mensajeError)) {
       mensajeError = mensajeError.join(', ');
     }
 
     return mensajeError
-      .replace('nombre should not be empty', 'El nombre no puede estar vacío')
-      .replace('email must be an email', 'El correo electrónico debe ser válido')
-      .replace('Internal server error', 'Error del servidor. Asegúrate de ingresar un teléfono válido (solo números).');
+      .replace('nombre should not be empty', 'El nombre no puede estar vacío.')
+      .replace('email must be an email', 'El correo electrónico debe ser válido.')
+      .replace('Internal server error', 'No se puede eliminar el cliente porque tiene reservas o registros asociados en el sistema.');
   }
 }
