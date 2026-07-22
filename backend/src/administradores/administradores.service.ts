@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Administrador } from './administrador.entity';
 import { CrearAdministradorDto } from './dto/crear-administrador.dto';
 import { EditarAdministradorDto } from './dto/editar-administrador.dto';
 import { RegistrarCanchaDto } from './dto/registrar-cancha.dto';
 import { Cancha } from '../canchas/cancha.entity';
+import { Reserva } from '../reservas/reserva.entity';
+
+export type CanchaConEstado = Cancha & { ocupadaAhora: boolean };
 
 @Injectable()
 export class AdministradoresService {
@@ -14,6 +17,8 @@ export class AdministradoresService {
     private readonly administradoresRepository: Repository<Administrador>,
     @InjectRepository(Cancha)
     private readonly canchasRepository: Repository<Cancha>,
+    @InjectRepository(Reserva)
+    private readonly reservasRepository: Repository<Reserva>,
   ) {}
 
   listar(): Promise<Administrador[]> {
@@ -71,16 +76,28 @@ export class AdministradoresService {
     const activas = canchas.filter((c) => c.activa).length;
     return `${canchas.length} canchas registradas, ${activas} activas`;
   }
-  async listarCanchas(administradorId: string): Promise<Cancha[]> {
-  await this.obtenerPorId(administradorId);
+  // listarCanchas(): las canchas del administrador, cada una con su ocupación en tiempo real.
+  async listarCanchas(administradorId: string): Promise<CanchaConEstado[]> {
+    await this.obtenerPorId(administradorId);
 
-  return this.canchasRepository.find({
-    where: {
-      administrador: {
-        id: administradorId,
-      },
-    },
-  });
-}
+    const canchas = await this.canchasRepository.find({
+      where: { administrador: { id: administradorId } },
+    });
+
+    const ahora = new Date();
+    const canchasConEstado: CanchaConEstado[] = [];
+    for (const cancha of canchas) {
+      const reservaEnCurso = await this.reservasRepository.findOne({
+        where: {
+          cancha: { id: cancha.id },
+          estado: 'CONFIRMADA',
+          horaInicio: LessThanOrEqual(ahora),
+          horaFin: MoreThanOrEqual(ahora),
+        },
+      });
+      canchasConEstado.push(Object.assign(cancha, { ocupadaAhora: !!reservaEnCurso }));
+    }
+    return canchasConEstado;
+  }
 }
 

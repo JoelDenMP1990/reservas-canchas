@@ -11,6 +11,7 @@ tarifaBasePorHora: number;
 activa: boolean;
 horaAperturaDesde: string;
 horaCierreHasta: string;
+ocupadaAhora: boolean;
 }
 
 @Component({
@@ -184,8 +185,20 @@ template: `
     Este administrador todavía no tiene canchas registradas.
   </p>
 
-  <div *ngFor="let cancha of canchas">
-    <div class="tarjeta">
+  <div class="leyenda">
+    <span class="punto libre"></span> Libre ahora
+    <span class="punto ocupada"></span> Ocupada ahora
+    <span class="punto inactiva"></span> Inactiva
+  </div>
+
+  <div class="grilla-canchas">
+    <div
+      *ngFor="let cancha of canchas"
+      class="celda-cancha"
+      [class.libre]="cancha.activa && !cancha.ocupadaAhora"
+      [class.ocupada]="cancha.activa && cancha.ocupadaAhora"
+      [class.inactiva]="!cancha.activa"
+    >
       <h4>{{ cancha.nombre }}</h4>
 
       <p>
@@ -203,9 +216,8 @@ template: `
         {{ cancha.horaCierreHasta }}
       </p>
 
-      <p>
-        <strong>Estado:</strong>
-        {{ cancha.activa ? 'Activa' : 'Inactiva' }}
+      <p class="etiqueta-estado">
+        {{ !cancha.activa ? 'Inactiva' : (cancha.ocupadaAhora ? 'Ocupada ahora' : 'Libre ahora') }}
       </p>
 
       <button
@@ -244,6 +256,67 @@ template: `
   {{ mensaje }}
 </p>
 `,
+styles: [`
+  .grilla-canchas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .celda-cancha {
+    border-radius: 10px;
+    padding: 1rem;
+    border: 2px solid transparent;
+    color: #fff;
+  }
+
+  .celda-cancha.libre {
+    background-color: #16a34a;
+  }
+
+  .celda-cancha.ocupada {
+    background-color: #dc2626;
+  }
+
+  .celda-cancha.inactiva {
+    background-color: #6b7280;
+  }
+
+  .celda-cancha h4,
+  .celda-cancha p {
+    margin: 0.2rem 0;
+  }
+
+  .celda-cancha button {
+    margin-top: 0.5rem;
+    margin-right: 0.4rem;
+  }
+
+  .leyenda {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .punto {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 0.6rem;
+  }
+
+  .punto:first-child {
+    margin-left: 0;
+  }
+
+  .punto.libre { background-color: #16a34a; }
+  .punto.ocupada { background-color: #dc2626; }
+  .punto.inactiva { background-color: #6b7280; }
+`],
 })
 export class AdministradoresComponent implements OnInit {
 administradores: Administrador[] = [];

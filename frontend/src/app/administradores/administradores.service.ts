@@ -17,6 +17,7 @@ export interface Cancha {
   activa: boolean;
   horaAperturaDesde: string;
   horaCierreHasta: string;
+  ocupadaAhora: boolean;
   administrador?: {
     id: string;
     nombre: string;
