@@ -36,7 +36,13 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
         </label>
         <label>
           Hora inicio
-          <input type="datetime-local" name="horaInicio" [(ngModel)]="formulario.horaInicio" required />
+          <input
+            type="datetime-local"
+            name="horaInicio"
+            [(ngModel)]="formulario.horaInicio"
+            [min]="minFechaHora"
+            required
+          />
         </label>
         <label>
           Hora fin
@@ -45,11 +51,11 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
         <button type="submit">{{ editandoId ? 'Guardar horario' : 'Crear reserva' }}</button>
         <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()">Cancelar</button>
       </form>
+      <p *ngIf="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
     </div>
 
     <div class="tarjeta">
       <h2>Lista de reservas</h2>
-      <p *ngIf="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
       <ul>
         <li *ngFor="let r of reservas">
           <div>
@@ -256,6 +262,7 @@ export class ReservasComponent implements OnInit {
   editandoId: string | null = null;
   mensaje = '';
   mensajeTipo = '';
+  minFechaHora = ReservasComponent.formatearFechaLocal(new Date());
 
   constructor(
     private readonly reservasService: ReservasService,
@@ -308,7 +315,10 @@ export class ReservasComponent implements OnInit {
   // aFechaLocal(): convierte un ISO UTC (con "Z") al valor que espera un input datetime-local,
   // en la hora local del navegador (evita el desfase que se veía al reprogramar una reserva).
   private aFechaLocal(fechaIso: string): string {
-    const fecha = new Date(fechaIso);
+    return ReservasComponent.formatearFechaLocal(new Date(fechaIso));
+  }
+
+  private static formatearFechaLocal(fecha: Date): string {
     const pad = (n: number) => n.toString().padStart(2, '0');
     return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
   }
