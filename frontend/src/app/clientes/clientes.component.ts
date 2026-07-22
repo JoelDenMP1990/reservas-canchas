@@ -34,8 +34,8 @@ import { Cliente, ClientesService } from './clientes.service';
             </div>
             
             <div class="botones-container">
-              <button type="submit" class="btn btn-guardar">
-                {{ editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente' }}
+              <button type="submit" class="btn btn-guardar" [disabled]="guardando">
+                {{ guardando ? '⏳ Guardando...' : (editandoId ? '💾 Guardar cambios' : '➕ Registrar cliente') }}
               </button>
               <button type="button" class="btn btn-cancelar" *ngIf="editandoId" (click)="cancelarEdicion()">
                 ❌ Cancelar
@@ -50,13 +50,26 @@ import { Cliente, ClientesService } from './clientes.service';
 
         <div class="tarjeta animate-fade-in">
           <h2><i class="icono">📋</i> Clientes Registrados</h2>
+
+          <div class="campo-grupo campo-busqueda">
+            <input
+              name="filtro"
+              [(ngModel)]="filtro"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="🔎 Buscar por nombre o email..."
+            />
+          </div>
           
           <div *ngIf="clientes.length === 0" class="sin-datos">
             No hay clientes registrados en la base de datos.
           </div>
 
+          <div *ngIf="clientes.length > 0 && clientesFiltrados.length === 0" class="sin-datos">
+            No hay clientes que coincidan con "{{ filtro }}".
+          </div>
+
           <ul class="lista-clientes">
-            <li *ngFor="let c of clientes" class="item-cliente">
+            <li *ngFor="let c of clientesFiltrados; trackBy: trackById" class="item-cliente">
               <div class="info-cliente">
                 <span class="nombre-cliente">{{ c.nombre }}</span>
                 <div class="detalles-fila">
@@ -88,7 +101,7 @@ import { Cliente, ClientesService } from './clientes.service';
       margin-left: calc(-50vw + 50%);
       padding: 40px 20px;
       background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-                  url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+                  url('https://images.unsplash.com/photo-1493538706211-316874a1e8b4?auto=format&fit=crop&w=2000&q=80') no-repeat center center scroll;
       background-size: cover;
       box-sizing: border-box;
       position: relative;
@@ -101,9 +114,9 @@ import { Cliente, ClientesService } from './clientes.service';
 
     /* Tarjetas semitransparentes (efecto cristal) */
     .tarjeta {
-      background: rgba(255, 255, 255, 0.90);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
@@ -165,6 +178,10 @@ import { Cliente, ClientesService } from './clientes.service';
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
+    .campo-busqueda {
+      margin-bottom: 16px;
+    }
+
     .botones-container {
       grid-column: 1 / -1;
       display: flex;
@@ -182,12 +199,17 @@ import { Cliente, ClientesService } from './clientes.service';
       transition: all 0.2s ease-in-out;
     }
 
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
     .btn-guardar {
       background: #064e3b;
       color: white;
     }
 
-    .btn-guardar:hover {
+    .btn-guardar:hover:not(:disabled) {
       background: #047857;
       transform: translateY(-1px);
     }
@@ -324,12 +346,32 @@ export class ClientesComponent implements OnInit {
   clientes: Cliente[] = [];
   formulario: Partial<Cliente> = { nombre: '', email: '', telefono: '' };
   editandoId: string | null = null;
+  guardando = false;
   mensaje = '';
-  mensajeTipo = '';
+  mensajeTipo: 'exito' | 'error' | '' = '';
   reservasActivasPorCliente: Record<string, any[]> = {};
+  filtro = '';
+
+  private mensajeTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.refrescar();
+  }
+
+  get clientesFiltrados(): Cliente[] {
+    const texto = this.filtro.trim().toLowerCase();
+    if (!texto) {
+      return this.clientes;
+    }
+    return this.clientes.filter(
+      (c) =>
+        c.nombre.toLowerCase().includes(texto) ||
+        c.email.toLowerCase().includes(texto)
+    );
+  }
+
+  trackById(_index: number, cliente: Cliente): string {
+    return cliente.id;
   }
 
   refrescar(): void {
@@ -340,20 +382,28 @@ export class ClientesComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.guardando) {
+      return;
+    }
+    this.guardando = true;
+
     const operacion = this.editandoId
       ? this.clientesService.editar(this.editandoId, this.formulario)
       : this.clientesService.crear(this.formulario);
 
     operacion.pipe(take(1)).subscribe({
       next: () => {
-        this.mensaje = this.editandoId ? '¡Cliente actualizado con éxito!' : '¡Cliente registrado con éxito!';
-        this.mensajeTipo = 'exito';
+        this.mostrarMensaje(
+          this.editandoId ? '¡Cliente actualizado con éxito!' : '¡Cliente registrado con éxito!',
+          'exito'
+        );
+        this.guardando = false;
         this.cancelarEdicion();
         this.refrescar();
       },
       error: (error) => {
-        this.mensaje = this.formatearMensajeError(error);
-        this.mensajeTipo = 'error';
+        this.mostrarMensaje(this.formatearMensajeError(error), 'error');
+        this.guardando = false;
       },
     });
   }
@@ -375,20 +425,38 @@ export class ClientesComponent implements OnInit {
         .eliminar(id)
         .pipe(take(1))
         .subscribe(() => {
-          this.mensaje = 'Cliente eliminado correctamente.';
-          this.mensajeTipo = 'exito';
+          this.mostrarMensaje('Cliente eliminado correctamente.', 'exito');
+          delete this.reservasActivasPorCliente[id];
           this.refrescar();
         });
     }
   }
 
   verReservasActivas(cliente: Cliente): void {
+    // Si ya se están mostrando, el mismo botón las oculta (toggle).
+    if (this.reservasActivasPorCliente[cliente.id]) {
+      delete this.reservasActivasPorCliente[cliente.id];
+      return;
+    }
+
     this.clientesService
       .getReservasActivas(cliente.id)
       .pipe(take(1))
       .subscribe((reservas) => {
         this.reservasActivasPorCliente[cliente.id] = reservas;
       });
+  }
+
+  private mostrarMensaje(texto: string, tipo: 'exito' | 'error'): void {
+    if (this.mensajeTimeoutId) {
+      clearTimeout(this.mensajeTimeoutId);
+    }
+    this.mensaje = texto;
+    this.mensajeTipo = tipo;
+    this.mensajeTimeoutId = setTimeout(() => {
+      this.mensaje = '';
+      this.mensajeTipo = '';
+    }, 3000);
   }
 
   private formatearMensajeError(error: any): string {
