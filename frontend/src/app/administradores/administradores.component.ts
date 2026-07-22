@@ -4,503 +4,492 @@ import { FormsModule } from '@angular/forms';
 import { Administrador, AdministradoresService } from './administradores.service';
 
 interface CanchaAdministrador {
-id: string;
-nombre: string;
-tipo: string;
-tarifaBasePorHora: number;
-activa: boolean;
-horaAperturaDesde: string;
-horaCierreHasta: string;
+  id: string;
+  nombre: string;
+  tipo: string;
+  tarifaBasePorHora: number;
+  activa: boolean;
+  horaAperturaDesde: string;
+  horaCierreHasta: string;
 }
 
 @Component({
-selector: 'app-administradores',
-standalone: true,
-imports: [CommonModule, FormsModule],
-template: `
-<div class="tarjeta">
-<h2>{{ editandoAdministradorId ? 'Editar administrador' : 'Nuevo administrador' }}</h2>
+  selector: 'app-administradores',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="contenedor-principal">
+      <div class="contenido-ancho">
 
-  <form (ngSubmit)="guardarAdministrador()">
-    <label>
-      Nombre
-      <input
-        name="nombre"
-        [(ngModel)]="formularioAdministrador.nombre"
-        required
-      />
-    </label>
+        <div class="tarjeta animate-fade-in">
+          <h2>{{ editandoAdministradorId ? 'Editar administrador' : 'Nuevo administrador' }}</h2>
 
-    <label>
-      Área asignada
-      <select
-        name="areaAsignada"
-        [(ngModel)]="formularioAdministrador.areaAsignada"
-        required
-      >
-        <option value="">Seleccione un área</option>
-        <option value="Zona Norte">Zona Norte</option>
-        <option value="Zona Sur">Zona Sur</option>
-        <option value="Zona Este">Zona Este</option>
-        <option value="Zona Oeste">Zona Oeste</option>
-      </select>
-    </label>
+          <form (ngSubmit)="guardarAdministrador()">
+            <label>
+              Nombre
+              <input
+                name="nombre"
+                [(ngModel)]="formularioAdministrador.nombre"
+                required
+              />
+            </label>
 
-    <button type="submit">
-      {{ editandoAdministradorId ? 'Guardar cambios' : 'Registrar administrador' }}
-    </button>
+            <label>
+              Área asignada
+              <select
+                name="areaAsignada"
+                [(ngModel)]="formularioAdministrador.areaAsignada"
+                required
+              >
+                <option value="">Seleccione un área</option>
+                <option value="Zona Norte">Zona Norte</option>
+                <option value="Zona Sur">Zona Sur</option>
+                <option value="Zona Este">Zona Este</option>
+                <option value="Zona Oeste">Zona Oeste</option>
+              </select>
+            </label>
 
-    <button
-      type="button"
-      *ngIf="editandoAdministradorId"
-      (click)="cancelarEdicionAdministrador()"
-    >
-      Cancelar
-    </button>
-  </form>
-</div>
+            <button type="submit">
+              {{ editandoAdministradorId ? 'Guardar cambios' : 'Registrar administrador' }}
+            </button>
 
-<div class="tarjeta">
-  <h2>Seleccionar administrador</h2>
+            <button
+              type="button"
+              *ngIf="editandoAdministradorId"
+              (click)="cancelarEdicionAdministrador()"
+            >
+              Cancelar
+            </button>
+          </form>
+        </div>
 
-  <select
-    name="administradorSeleccionado"
-    [(ngModel)]="administradorSeleccionadoId"
-    (ngModelChange)="seleccionarAdministrador()"
-  >
-    <option value="">Seleccione un administrador</option>
+        <div class="tarjeta animate-fade-in">
+          <h2>Seleccionar administrador</h2>
 
-    <option
-      *ngFor="let administrador of administradores"
-      [value]="administrador.id"
-    >
-      {{ administrador.nombre }} — {{ administrador.areaAsignada }}
-    </option>
-  </select>
-</div>
+          <select
+            name="administradorSeleccionado"
+            [(ngModel)]="administradorSeleccionadoId"
+            (ngModelChange)="seleccionarAdministrador()"
+          >
+            <option value="">Seleccione un administrador</option>
 
-<div
-  class="tarjeta"
-  *ngIf="administradorSeleccionado"
->
-  <h2>
-    Panel de {{ administradorSeleccionado.nombre }}
-  </h2>
+            <option
+              *ngFor="let administrador of administradores"
+              [value]="administrador.id"
+            >
+              {{ administrador.nombre }} — {{ administrador.areaAsignada }}
+            </option>
+          </select>
+        </div>
 
-  <p>
-    <strong>Área:</strong>
-    {{ administradorSeleccionado.areaAsignada }}
-  </p>
+        <div
+          class="tarjeta animate-fade-in"
+          *ngIf="administradorSeleccionado"
+        >
+          <h2>
+            Panel de {{ administradorSeleccionado.nombre }}
+          </h2>
 
-  <hr />
+          <p>
+            <strong>Área:</strong>
+            {{ administradorSeleccionado.areaAsignada }}
+          </p>
 
-  <h3>
-    {{ editandoCanchaId ? 'Editar cancha' : 'Registrar nueva cancha' }}
-  </h3>
+          <hr />
 
-  <form (ngSubmit)="guardarCancha()">
-    <label>
-      Nombre de la cancha
-      <input
-        name="nombreCancha"
-        [(ngModel)]="formularioCancha.nombre"
-        required
-      />
-    </label>
+          <h3>
+            {{ editandoCanchaId ? 'Editar cancha' : 'Registrar nueva cancha' }}
+          </h3>
 
-    <label>
-      Tipo de cancha
-      <select
-        name="tipo"
-        [(ngModel)]="formularioCancha.tipo"
-        required
-      >
-        <option value="">Seleccione un tipo</option>
-        <option value="Futbol">Fútbol</option>
-        <option value="Basquet">Básquet</option>
-        <option value="Volley">Volley</option>
-        <option value="Tenis">Tenis</option>
-      </select>
-    </label>
+          <form (ngSubmit)="guardarCancha()">
+            <label>
+              Nombre de la cancha
+              <input
+                name="nombreCancha"
+                [(ngModel)]="formularioCancha.nombre"
+                required
+              />
+            </label>
 
-    <label>
-      Tarifa base por hora
-      <input
-        name="tarifaBasePorHora"
-        type="number"
-        min="0"
-        [(ngModel)]="formularioCancha.tarifaBasePorHora"
-        required
-      />
-    </label>
+            <label>
+              Tipo de cancha
+              <select
+                name="tipo"
+                [(ngModel)]="formularioCancha.tipo"
+                required
+              >
+                <option value="">Seleccione un tipo</option>
+                <option value="Futbol">Fútbol</option>
+                <option value="Basquet">Básquet</option>
+                <option value="Volley">Volley</option>
+                <option value="Tenis">Tenis</option>
+              </select>
+            </label>
 
-    <label>
-      Hora de apertura
-      <input
-        name="horaAperturaDesde"
-        type="time"
-        [(ngModel)]="formularioCancha.horaAperturaDesde"
-        required
-      />
-    </label>
+            <label>
+              Tarifa base por hora
+              <input
+                name="tarifaBasePorHora"
+                type="number"
+                min="0"
+                [(ngModel)]="formularioCancha.tarifaBasePorHora"
+                required
+              />
+            </label>
 
-    <label>
-      Hora de cierre
-      <input
-        name="horaCierreHasta"
-        type="time"
-        [(ngModel)]="formularioCancha.horaCierreHasta"
-        required
-      />
-    </label>
+            <label>
+              Hora de apertura
+              <input
+                name="horaAperturaDesde"
+                type="time"
+                [(ngModel)]="formularioCancha.horaAperturaDesde"
+                required
+              />
+            </label>
 
-    <label>
-      <input
-        name="activa"
-        type="checkbox"
-        [(ngModel)]="formularioCancha.activa"
-      />
-      Cancha activa
-    </label>
+            <label>
+              Hora de cierre
+              <input
+                name="horaCierreHasta"
+                type="time"
+                [(ngModel)]="formularioCancha.horaCierreHasta"
+                required
+              />
+            </label>
 
-    <button type="submit">
-      {{ editandoCanchaId ? 'Guardar cambios' : 'Registrar cancha' }}
-    </button>
+            <label>
+              <input
+                name="activa"
+                type="checkbox"
+                [(ngModel)]="formularioCancha.activa"
+              />
+              Cancha activa
+            </label>
 
-    <button
-      type="button"
-      *ngIf="editandoCanchaId"
-      (click)="cancelarEdicionCancha()"
-    >
-      Cancelar
-    </button>
-  </form>
+            <button type="submit">
+              {{ editandoCanchaId ? 'Guardar cambios' : 'Registrar cancha' }}
+            </button>
 
-  <hr />
+            <button
+              type="button"
+              *ngIf="editandoCanchaId"
+              (click)="cancelarEdicionCancha()"
+            >
+              Cancelar
+            </button>
+          </form>
 
-  <h3>Mis canchas</h3>
+          <hr />
 
-  <p *ngIf="canchas.length === 0">
-    Este administrador todavía no tiene canchas registradas.
-  </p>
+          <h3>Mis canchas</h3>
 
-  <div *ngFor="let cancha of canchas">
-    <div class="tarjeta">
-      <h4>{{ cancha.nombre }}</h4>
+          <p *ngIf="canchas.length === 0">
+            Este administrador todavía no tiene canchas registradas.
+          </p>
 
-      <p>
-        <strong>Tipo:</strong> {{ cancha.tipo }}
-      </p>
+          <div *ngFor="let cancha of canchas">
+            <div class="tarjeta">
+              <h4>{{ cancha.nombre }}</h4>
 
-      <p>
-        <strong>Tarifa:</strong>
-        \${{ cancha.tarifaBasePorHora }}/hora
-      </p>
+              <p>
+                <strong>Tipo:</strong> {{ cancha.tipo }}
+              </p>
 
-      <p>
-        <strong>Horario:</strong>
-        {{ cancha.horaAperturaDesde }} -
-        {{ cancha.horaCierreHasta }}
-      </p>
+              <p>
+                <strong>Tarifa:</strong>
+                \${{ cancha.tarifaBasePorHora }}/hora
+              </p>
 
-      <p>
-        <strong>Estado:</strong>
-        {{ cancha.activa ? 'Activa' : 'Inactiva' }}
-      </p>
+              <p>
+                <strong>Horario:</strong>
+                {{ cancha.horaAperturaDesde }} -
+                {{ cancha.horaCierreHasta }}
+              </p>
 
-      <button
-        type="button"
-        (click)="editarCancha(cancha)"
-      >
-        Editar
-      </button>
+              <p>
+                <strong>Estado:</strong>
+                {{ cancha.activa ? 'Activa' : 'Inactiva' }}
+              </p>
 
-      <button
-        type="button"
-        (click)="eliminarCancha(cancha.id)"
-      >
-        Eliminar
-      </button>
+              <button
+                type="button"
+                (click)="editarCancha(cancha)"
+              >
+                Editar
+              </button>
+
+              <button
+                type="button"
+                (click)="eliminarCancha(cancha.id)"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="verReporte(administradorSeleccionado)"
+          >
+            Ver reporte de ocupación
+          </button>
+
+          <p *ngIf="reporte">
+            <strong>Reporte:</strong>
+            {{ reporte }}
+          </p>
+        </div>
+
+        <p
+          class="mensaje"
+          [class]="mensajeTipo"
+        >
+          {{ mensaje }}
+        </p>
+
+      </div>
     </div>
-  </div>
-
-  <button
-    type="button"
-    (click)="verReporte(administradorSeleccionado)"
-  >
-    Ver reporte de ocupación
-  </button>
-
-  <p *ngIf="reporte">
-    <strong>Reporte:</strong>
-    {{ reporte }}
-  </p>
-</div>
-
-<p
-  class="mensaje"
-  [class]="mensajeTipo"
->
-  {{ mensaje }}
-</p>
-`,
+  `,
 })
 export class AdministradoresComponent implements OnInit {
-administradores: Administrador[] = [];
+  administradores: Administrador[] = [];
 
-administradorSeleccionadoId = '';
-administradorSeleccionado: Administrador | null = null;
+  administradorSeleccionadoId = '';
+  administradorSeleccionado: Administrador | null = null;
 
-canchas: CanchaAdministrador[] = [];
+  canchas: CanchaAdministrador[] = [];
 
-formularioAdministrador: Partial<Administrador> = {
-nombre: '',
-areaAsignada: '',
-};
-
-formularioCancha: Partial<CanchaAdministrador> = {
-nombre: '',
-tipo: '',
-tarifaBasePorHora: 20,
-activa: true,
-horaAperturaDesde: '08:00',
-horaCierreHasta: '22:00',
-};
-
-editandoAdministradorId: string | null = null;
-editandoCanchaId: string | null = null;
-
-reporte = '';
-
-mensaje = '';
-mensajeTipo = '';
-
-constructor(
-private readonly administradoresService: AdministradoresService,
-) {}
-
-ngOnInit(): void {
-this.refrescarAdministradores();
-}
-
-refrescarAdministradores(): void {
-this.administradoresService
-.listar()
-.subscribe((administradores) => {
-this.administradores = administradores;
-});
-}
-
-guardarAdministrador(): void {
-const operacion = this.editandoAdministradorId
-? this.administradoresService.editar(
-this.editandoAdministradorId,
-this.formularioAdministrador,
-)
-: this.administradoresService.crear(
-this.formularioAdministrador,
-);
-
-operacion.subscribe({
-  next: () => {
-    this.mensaje = this.editandoAdministradorId
-      ? 'Administrador actualizado.'
-      : 'Administrador registrado.';
-
-    this.mensajeTipo = 'mensaje exito';
-
-    this.cancelarEdicionAdministrador();
-
-    this.refrescarAdministradores();
-  },
-
-  error: (error) => {
-    this.mensaje =
-      error.error?.message ??
-      'No se pudo guardar el administrador.';
-
-    this.mensajeTipo = 'mensaje error';
-  },
-});
-
-}
-
-seleccionarAdministrador(): void {
-if (!this.administradorSeleccionadoId) {
-this.administradorSeleccionado = null;
-this.canchas = [];
-return;
-}
-
-this.administradorSeleccionado =
-  this.administradores.find(
-    (administrador) =>
-      administrador.id === this.administradorSeleccionadoId,
-  ) ?? null;
-
-if (this.administradorSeleccionado) {
-  this.cargarCanchas();
-}
-
-}
-
-cargarCanchas(): void {
-if (!this.administradorSeleccionadoId) {
-return;
-}
-
-this.administradoresService
-  .listarCanchas(this.administradorSeleccionadoId)
-  .subscribe({
-    next: (canchas) => {
-      this.canchas = canchas;
-    },
-
-    error: (error) => {
-      this.mensaje =
-        error.error?.message ??
-        'No se pudieron cargar las canchas.';
-
-      this.mensajeTipo = 'mensaje error';
-    },
-  });
-
-}
-
-guardarCancha(): void {
-  const datos = {
-    ...this.formularioCancha,
-    tarifaBasePorHora: Number(this.formularioCancha.tarifaBasePorHora),
+  formularioAdministrador: Partial<Administrador> = {
+    nombre: '',
+    areaAsignada: '',
   };
 
-  if (this.editandoCanchaId) {
+  formularioCancha: Partial<CanchaAdministrador> = {
+    nombre: '',
+    tipo: '',
+    tarifaBasePorHora: 20,
+    activa: true,
+    horaAperturaDesde: '08:00',
+    horaCierreHasta: '22:00',
+  };
+
+  editandoAdministradorId: string | null = null;
+  editandoCanchaId: string | null = null;
+
+  reporte = '';
+
+  mensaje = '';
+  mensajeTipo = '';
+
+  constructor(
+    private readonly administradoresService: AdministradoresService,
+  ) {}
+
+  ngOnInit(): void {
+    this.refrescarAdministradores();
+  }
+
+  refrescarAdministradores(): void {
     this.administradoresService
-      .editarCancha(this.editandoCanchaId, datos)
-      .subscribe({
-        next: () => {
-          this.mensaje = 'Cancha actualizada correctamente.';
-          this.cargarCanchas();
-        },
-        error: (error) => {
-          this.mensaje =
-            error.error?.message ?? 'No se pudo actualizar la cancha.';
-        },
+      .listar()
+      .subscribe((administradores) => {
+        this.administradores = administradores;
       });
-  } else {
+  }
+
+  guardarAdministrador(): void {
+    const operacion = this.editandoAdministradorId
+      ? this.administradoresService.editar(
+          this.editandoAdministradorId,
+          this.formularioAdministrador,
+        )
+      : this.administradoresService.crear(
+          this.formularioAdministrador,
+        );
+
+    operacion.subscribe({
+      next: () => {
+        this.mensaje = this.editandoAdministradorId
+          ? 'Administrador actualizado.'
+          : 'Administrador registrado.';
+
+        this.mensajeTipo = 'mensaje exito';
+
+        this.cancelarEdicionAdministrador();
+
+        this.refrescarAdministradores();
+      },
+
+      error: (error) => {
+        this.mensaje =
+          error.error?.message ??
+          'No se pudo guardar el administrador.';
+
+        this.mensajeTipo = 'mensaje error';
+      },
+    });
+  }
+
+  seleccionarAdministrador(): void {
+    if (!this.administradorSeleccionadoId) {
+      this.administradorSeleccionado = null;
+      this.canchas = [];
+      return;
+    }
+
+    this.administradorSeleccionado =
+      this.administradores.find(
+        (administrador) =>
+          administrador.id === this.administradorSeleccionadoId,
+      ) ?? null;
+
+    if (this.administradorSeleccionado) {
+      this.cargarCanchas();
+    }
+  }
+
+  cargarCanchas(): void {
+    if (!this.administradorSeleccionadoId) {
+      return;
+    }
+
     this.administradoresService
-      .registrarCancha(this.administradorSeleccionadoId, datos)
+      .listarCanchas(this.administradorSeleccionadoId)
       .subscribe({
-        next: () => {
-          this.mensaje = 'Cancha registrada correctamente.';
-          this.cargarCanchas();
+        next: (canchas) => {
+          this.canchas = canchas;
         },
+
         error: (error) => {
           this.mensaje =
-            error.error?.message ?? 'No se pudo registrar la cancha.';
+            error.error?.message ??
+            'No se pudieron cargar las canchas.';
+
+          this.mensajeTipo = 'mensaje error';
         },
       });
   }
+
+  guardarCancha(): void {
+    const datos = {
+      ...this.formularioCancha,
+      tarifaBasePorHora: Number(this.formularioCancha.tarifaBasePorHora),
+    };
+
+    if (this.editandoCanchaId) {
+      this.administradoresService
+        .editarCancha(this.editandoCanchaId, datos)
+        .subscribe({
+          next: () => {
+            this.mensaje = 'Cancha actualizada correctamente.';
+            this.cargarCanchas();
+          },
+          error: (error) => {
+            this.mensaje =
+              error.error?.message ?? 'No se pudo actualizar la cancha.';
+          },
+        });
+    } else {
+      this.administradoresService
+        .registrarCancha(this.administradorSeleccionadoId, datos)
+        .subscribe({
+          next: () => {
+            this.mensaje = 'Cancha registrada correctamente.';
+            this.cargarCanchas();
+          },
+          error: (error) => {
+            this.mensaje =
+              error.error?.message ?? 'No se pudo registrar la cancha.';
+          },
+        });
+    }
+  }
+
+  editarCancha(cancha: CanchaAdministrador): void {
+    this.editandoCanchaId = cancha.id;
+
+    this.formularioCancha = {
+      nombre: cancha.nombre,
+      tipo: cancha.tipo,
+      tarifaBasePorHora: cancha.tarifaBasePorHora,
+      activa: cancha.activa,
+      horaAperturaDesde: cancha.horaAperturaDesde,
+      horaCierreHasta: cancha.horaCierreHasta,
+    };
+  }
+
+  eliminarCancha(id: string): void {
+    if (!this.administradorSeleccionadoId) {
+      return;
+    }
+
+    this.administradoresService
+      .eliminarCancha(
+        this.administradorSeleccionadoId,
+        id,
+      )
+      .subscribe({
+        next: () => {
+          this.mensaje = 'Cancha eliminada.';
+          this.mensajeTipo = 'mensaje exito';
+
+          this.cargarCanchas();
+        },
+
+        error: (error) => {
+          this.mensaje =
+            error.error?.message ??
+            'No se pudo eliminar la cancha.';
+
+          this.mensajeTipo = 'mensaje error';
+        },
+      });
+  }
+
+  verReporte(administrador: Administrador): void {
+    this.administradoresService
+      .reporteOcupacion(administrador.id)
+      .subscribe((reporte) => {
+        this.reporte = reporte;
+      });
+  }
+
+  editar(administrador: Administrador): void {
+    this.editandoAdministradorId = administrador.id;
+
+    this.formularioAdministrador = {
+      nombre: administrador.nombre,
+      areaAsignada: administrador.areaAsignada,
+    };
+  }
+
+  cancelarEdicionAdministrador(): void {
+    this.editandoAdministradorId = null;
+
+    this.formularioAdministrador = {
+      nombre: '',
+      areaAsignada: '',
+    };
+  }
+
+  cancelarEdicionCancha(): void {
+    this.editandoCanchaId = null;
+
+    this.formularioCancha = {
+      nombre: '',
+      tipo: '',
+      tarifaBasePorHora: 20,
+      activa: true,
+      horaAperturaDesde: '08:00',
+      horaCierreHasta: '22:00',
+    };
+  }
+
+  eliminarAdministrador(id: string): void {
+    this.administradoresService
+      .eliminar(id)
+      .subscribe(() => {
+        this.refrescarAdministradores();
+      });
+  }
 }
-
-editarCancha(cancha: CanchaAdministrador): void {
-this.editandoCanchaId = cancha.id;
-
-
-this.formularioCancha = {
-  nombre: cancha.nombre,
-  tipo: cancha.tipo,
-  tarifaBasePorHora: cancha.tarifaBasePorHora,
-  activa: cancha.activa,
-  horaAperturaDesde: cancha.horaAperturaDesde,
-  horaCierreHasta: cancha.horaCierreHasta,
-};
-
-
-}
-
-eliminarCancha(id: string): void {
-if (!this.administradorSeleccionadoId) {
-return;
-}
-
-
-this.administradoresService
-  .eliminarCancha(
-    this.administradorSeleccionadoId,
-    id,
-  )
-  .subscribe({
-    next: () => {
-      this.mensaje = 'Cancha eliminada.';
-      this.mensajeTipo = 'mensaje exito';
-
-      this.cargarCanchas();
-    },
-
-    error: (error) => {
-      this.mensaje =
-        error.error?.message ??
-        'No se pudo eliminar la cancha.';
-
-      this.mensajeTipo = 'mensaje error';
-    },
-  });
-
-}
-
-verReporte(administrador: Administrador): void {
-this.administradoresService
-.reporteOcupacion(administrador.id)
-.subscribe((reporte) => {
-this.reporte = reporte;
-});
-}
-
-editar(administrador: Administrador): void {
-this.editandoAdministradorId = administrador.id;
-
-
-this.formularioAdministrador = {
-  nombre: administrador.nombre,
-  areaAsignada: administrador.areaAsignada,
-};
-
-
-}
-
-cancelarEdicionAdministrador(): void {
-this.editandoAdministradorId = null;
-
-
-this.formularioAdministrador = {
-  nombre: '',
-  areaAsignada: '',
-};
-
-
-}
-
-cancelarEdicionCancha(): void {
-this.editandoCanchaId = null;
-
-this.formularioCancha = {
-  nombre: '',
-  tipo: '',
-  tarifaBasePorHora: 20,
-  activa: true,
-  horaAperturaDesde: '08:00',
-  horaCierreHasta: '22:00',
-};
-
-
-}
-
-eliminarAdministrador(id: string): void {
-this.administradoresService
-.eliminar(id)
-.subscribe(() => {
-this.refrescarAdministradores();
-});
-}
-}
-
