@@ -132,9 +132,6 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       max-width: 1200px;
       margin: 2rem auto;
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-         url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
-      background-size: cover;
     } 
 
     /* Tarjetas*/
