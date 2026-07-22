@@ -131,7 +131,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       min-height: calc(100vh - 70px);
       padding: 20px;
       box-sizing: border-box;
-    } 
+    }
 
     .tarjeta {  
       background: rgba(255, 255, 255, 0.85);
