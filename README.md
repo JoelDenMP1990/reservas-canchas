@@ -116,7 +116,7 @@ Corre la suite de Jest del backend (pruebas simples y directas sobre las entidad
 | Coordinador/a | Adriana Martínez |
 | Admin | Josué Jiménez |
 | Integrante | Bryan Cabrera |
-| Integrante | Dimas Duque |
+| Integrante | Dario Duque |
 | Integrante | Dayana Guilcaso |
 | Integrante | Leonardo Reyes |
 | Integrante | Ely Troya |
