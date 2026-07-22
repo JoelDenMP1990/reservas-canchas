@@ -103,17 +103,21 @@ export class AdministradoresService {
     return canchasConHorarios;
   }
 
-  // generarFranjas(): parte el horario de apertura/cierre de la cancha en bloques de 1
-  // hora para el día de hoy, y marca cada bloque como ocupado si se cruza con alguna
-  // reserva confirmada.
+  // generarFranjas(): parte en bloques de 1 hora el horario de la cancha que todavía
+  // queda por delante hoy (desde la hora actual, no desde la apertura), marcando cada
+  // bloque como ocupado si se cruza con alguna reserva confirmada. Las horas que ya
+  // pasaron no se muestran: no aportan nada para decidir si se puede reservar o no.
   private generarFranjas(cancha: Cancha, reservas: Reserva[]): FranjaHoraria[] {
     const pad = (n: number) => n.toString().padStart(2, '0');
-    const hoy = new Date();
+    const ahora = new Date();
     const [horaApertura, minutoApertura] = cancha.horaAperturaDesde.split(':').map(Number);
     const [horaCierre, minutoCierre] = cancha.horaCierreHasta.split(':').map(Number);
 
-    let cursor = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), horaApertura, minutoApertura);
-    const cierre = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), horaCierre, minutoCierre);
+    const apertura = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), horaApertura, minutoApertura);
+    const cierre = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), horaCierre, minutoCierre);
+    const inicioHoraActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), ahora.getHours(), 0);
+
+    let cursor = apertura > inicioHoraActual ? apertura : inicioHoraActual;
 
     const franjas: FranjaHoraria[] = [];
     while (cursor < cierre) {

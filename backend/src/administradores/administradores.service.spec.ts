@@ -11,10 +11,15 @@ describe('AdministradoresService', () => {
   let canchasRepositorio: { find: jest.Mock };
   let reservasRepositorio: { find: jest.Mock };
 
-  const hoy = new Date();
-  const horaHoy = (h: number, m = 0) => new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), h, m);
+  // Hora "actual" fija para que las pruebas no dependan del reloj real.
+  const FECHA_BASE = new Date(2026, 0, 15, 8, 30);
+  const horaHoy = (h: number, m = 0) =>
+    new Date(FECHA_BASE.getFullYear(), FECHA_BASE.getMonth(), FECHA_BASE.getDate(), h, m);
 
   beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FECHA_BASE);
+
     administradoresRepositorio = { findOneBy: jest.fn() };
     canchasRepositorio = { find: jest.fn() };
     reservasRepositorio = { find: jest.fn() };
@@ -29,6 +34,10 @@ describe('AdministradoresService', () => {
     }).compile();
 
     service = moduleRef.get(AdministradoresService);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('listarCanchas() parte el horario de la cancha en franjas de 1 hora, todas libres sin reservas', async () => {
@@ -72,6 +81,33 @@ describe('AdministradoresService', () => {
     expect(resultado.horarios).toEqual([
       { inicio: '09:00', fin: '10:00', ocupada: true },
       { inicio: '10:00', fin: '11:00', ocupada: false },
+    ]);
+  });
+
+  it('listarCanchas() no muestra las franjas cuya hora ya pasó', async () => {
+    jest.setSystemTime(horaHoy(10, 30));
+
+    administradoresRepositorio.findOneBy.mockResolvedValue(Object.assign(new Administrador(), { id: 'admin-1' }));
+    const cancha = Object.assign(new Cancha(), {
+      id: 'cancha-1',
+      nombre: 'Cancha 1',
+      horaAperturaDesde: '09:00:00',
+      horaCierreHasta: '12:00:00',
+    });
+    canchasRepositorio.find.mockResolvedValue([cancha]);
+    reservasRepositorio.find.mockResolvedValue([
+      Object.assign(new Reserva(), {
+        estado: 'CONFIRMADA',
+        horaInicio: horaHoy(9, 0),
+        horaFin: horaHoy(10, 0),
+      }),
+    ]);
+
+    const [resultado] = await service.listarCanchas('admin-1');
+
+    expect(resultado.horarios).toEqual([
+      { inicio: '10:00', fin: '11:00', ocupada: false },
+      { inicio: '11:00', fin: '12:00', ocupada: false },
     ]);
   });
 });
