@@ -117,29 +117,50 @@ import { Administrador, AdministradoresService } from '../administradores/admini
 
     </div>
   `,
+
   styles: [`
-    .contenedor-principal {
+   .contenedor-principal {
+      width: 100vw;
+      min-height: calc(100vh - 70px);
+      margin-left: calc(-50vw + 50%);
+      padding: 2rem 1rem;
+      box-sizing: border-box;
+      position: relative;
       display: grid;
-      grid-template-columns: 1fr 1.5fr;
+      grid-template-columns: 1.5fr 1fr;
       gap: 2rem;
       max-width: 1200px;
       margin: 2rem auto;
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
+      background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
+         url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+      background-size: cover;
+    } 
 
-    /* Tarjetas base */
+body{
+    margin: 0;
+    background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)),
+    url("https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+    /* Tarjetas*/
     .tarjeta {
-      background: #ffffff;
+      
+      backdrop-filter: blur(6px);
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      border: 1px solid #eaeaea;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.5);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .tarjeta-header {
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       border-bottom: 1px solid #f0f0f0;
     }
 
@@ -152,13 +173,13 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       gap: 0.5rem;
     }
 
-    /* Formulario */
+    /* Formularios*/
     .formulario {
       padding: 1.5rem;
     }
 
     .form-group {
-      margin-bottom: 1.2rem;
+      margin-bottom: 1rem;
       display: flex;
       flex-direction: column;
     }
@@ -186,11 +207,13 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       font-size: 0.95rem;
       transition: all 0.2s;
       outline: none;
+      background: rgba(255,255,255,0.9);
     }
 
     input:focus, select:focus {
       border-color: #276749;
-      box-shadow: 0 0 0 3px rgba(39, 103, 73, 0.1);
+      box-shadow: 0 0 0 3px rgba(39, 103, 73, 0.15);
+      background: #ffffff;
     }
 
     .checkbox-group {
@@ -215,7 +238,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .acciones-formulario {
       display: flex;
       gap: 1rem;
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
     }
 
     .btn {
@@ -250,21 +273,21 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       background-color: #e2e8f0;
     }
 
-    /* Lista de Canchas */
+    /* lista de canchas*/
     .canchas-grid {
-      padding: 1.5rem;
+      padding: 1rem 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem; 
       overflow-y: auto;
-      max-height: 600px;
+      max-height: 500px; 
     }
 
     .cancha-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
+      padding: 0.75rem 1rem; /* Menos relleno dentro de cada tarjeta */
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       background: #fafbfc;
@@ -273,7 +296,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
 
     .cancha-item:hover {
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       background: #ffffff;
     }
 
@@ -284,20 +307,20 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .cancha-header {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
+      gap: 0.75rem;
+      margin-bottom: 0.3rem; /* Menos espacio debajo del nombre */
     }
 
     .cancha-header h3 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1rem; /* Tamaño de letra más pequeño */
       color: #2d3748;
     }
 
     .badge {
-      padding: 0.25rem 0.6rem;
+      padding: 0.2rem 0.5rem; /* Más pequeño */
       border-radius: 999px;
-      font-size: 0.75rem;
+      font-size: 0.7rem; /* Letra más chica */
       font-weight: bold;
       text-transform: uppercase;
     }
@@ -313,28 +336,29 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     }
 
     .cancha-detalle {
-      margin: 0.2rem 0;
-      font-size: 0.875rem;
+      margin: 0.15rem 0; /* Menos espacio entre líneas */
+      font-size: 0.8rem; /* Letra más pequeña */
       color: #718096;
     }
 
-    /* Acciones Item */
+    /* Botones de acción  */
     .cancha-acciones {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
     .btn-icon {
       background: #edf2f7;
       border: none;
-      width: 36px;
-      height: 36px;
+      width: 32px; /* Más chico */
+      height: 32px; /* Más chico */
       border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
+      font-size: 0.9rem;
     }
 
     .btn-edit:hover { background: #bee3f8; }
@@ -343,10 +367,11 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     /* Alertas */
     .alerta {
       margin: 1rem 1.5rem 1.5rem;
-      padding: 1rem;
+      padding: 0.85rem;
       border-radius: 6px;
       font-weight: 500;
       text-align: center;
+      font-size: 0.9rem;
     }
 
     .alerta-exito {
@@ -364,7 +389,8 @@ import { Administrador, AdministradoresService } from '../administradores/admini
     .estado-vacio {
       text-align: center;
       color: #a0aec0;
-      padding: 2rem;
+      padding: 1.5rem;
+      font-size: 0.9rem;
     }
 
     /* Responsive */
@@ -378,7 +404,8 @@ import { Administrador, AdministradoresService } from '../administradores/admini
         gap: 0;
       }
     }
-  `]
+  `] 
+
 })
 export class CanchasComponent implements OnInit {
   canchas: Cancha[] = [];
