@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
+import { Notificacion } from '../notificaciones/notificacion.entity';
 
 // Reserva: uso de una cancha por un cliente en un horario determinado.
 @Entity('reservas')
@@ -32,6 +33,9 @@ export class Reserva {
 
   @OneToOne(() => Pago, (pago) => pago.reserva)
   pago: Pago;
+
+  @OneToMany(() => Notificacion, (notificacion) => notificacion.reserva)
+  notificaciones: Notificacion[];
 
   // confirmar(): la reserva pasa a confirmada, normalmente tras registrar el pago.
   confirmar(): void {
