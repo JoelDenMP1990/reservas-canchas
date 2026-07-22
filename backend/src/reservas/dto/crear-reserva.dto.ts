@@ -1,4 +1,4 @@
-import { IsDateString, IsUUID } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsUUID } from 'class-validator';
 
 export class CrearReservaDto {
   @IsUUID()
@@ -12,4 +12,9 @@ export class CrearReservaDto {
 
   @IsDateString()
   horaFin: string;
+
+  // metodoPago: solo se usa cuando la cancha no es gratuita (por defecto EFECTIVO).
+  @IsOptional()
+  @IsIn(['TARJETA', 'EFECTIVO', 'TRANSFERENCIA'])
+  metodoPago?: string;
 }

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Reserva } from './reserva.entity';
 import { Cancha } from '../canchas/cancha.entity';
 
@@ -9,11 +10,21 @@ describe('Reserva', () => {
     expect(reserva.estado).toBe('CONFIRMADA');
   });
 
-  it('cancelar() cambia el estado a CANCELADA', () => {
+  it('cancelar() cambia el estado a CANCELADA si faltan al menos 2 horas para el inicio', () => {
     const reserva = new Reserva();
     reserva.estado = 'CONFIRMADA';
+    reserva.horaInicio = new Date(Date.now() + 3 * 60 * 60 * 1000);
     reserva.cancelar();
     expect(reserva.estado).toBe('CANCELADA');
+  });
+
+  it('cancelar() rechaza la cancelación si faltan menos de 2 horas para el inicio', () => {
+    const reserva = new Reserva();
+    reserva.estado = 'CONFIRMADA';
+    reserva.horaInicio = new Date(Date.now() + 30 * 60 * 1000);
+
+    expect(() => reserva.cancelar()).toThrow(BadRequestException);
+    expect(reserva.estado).toBe('CONFIRMADA');
   });
 
   it('calcularPrecio() multiplica las horas reservadas por la tarifa de la cancha', () => {

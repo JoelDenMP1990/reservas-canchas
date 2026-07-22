@@ -23,7 +23,13 @@ export class ReservasService {
     return this.http.get<Reserva[]>(`${API_BASE_URL}/reservas`);
   }
 
-  crear(datos: { clienteId: string; canchaId: string; horaInicio: string; horaFin: string }): Observable<Reserva> {
+  crear(datos: {
+    clienteId: string;
+    canchaId: string;
+    horaInicio: string;
+    horaFin: string;
+    metodoPago?: string;
+  }): Observable<Reserva> {
     return this.http.post<Reserva>(`${API_BASE_URL}/reservas`, datos);
   }
 
