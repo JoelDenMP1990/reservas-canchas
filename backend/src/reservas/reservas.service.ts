@@ -33,18 +33,36 @@ export class ReservasService {
     return reserva;
   }
 
+  // --- MÉTODO CREAR REFACTORIZADO (Corto y limpio) ---
   async crear(dto: CrearReservaDto): Promise<Reserva> {
+    const { cliente, cancha } = await this.validarYObtenerClienteYCancha(dto);
+    this.validarDisponibilidadCancha(cancha);
+    return await this.construirYGuardarReserva(dto, cliente, cancha);
+  }
+
+  // --- MÉTODOS PRIVADOS EXTRAÍDOS ---
+
+  private async validarYObtenerClienteYCancha(dto: CrearReservaDto): Promise<{ cliente: Cliente; cancha: Cancha }> {
     const cliente = await this.clientesRepository.findOneBy({ id: dto.clienteId });
     if (!cliente) {
       throw new NotFoundException('Cliente no encontrado');
     }
+
     const cancha = await this.canchasRepository.findOneBy({ id: dto.canchaId });
     if (!cancha) {
       throw new NotFoundException('Cancha no encontrada');
     }
+
+    return { cliente, cancha };
+  }
+
+  private validarDisponibilidadCancha(cancha: Cancha): void {
     if (!cancha.estaDisponible()) {
       throw new BadRequestException('La cancha no está disponible');
     }
+  }
+
+  private async construirYGuardarReserva(dto: CrearReservaDto, cliente: Cliente, cancha: Cancha): Promise<Reserva> {
     const reserva = this.reservasRepository.create({
       cliente,
       cancha,
