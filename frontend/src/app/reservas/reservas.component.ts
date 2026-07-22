@@ -26,6 +26,14 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
             <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
           </select>
         </label>
+        <label *ngIf="!editandoId">
+          Método de pago
+          <select name="metodoPago" [(ngModel)]="formulario.metodoPago" required>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="TARJETA">Tarjeta</option>
+            <option value="TRANSFERENCIA">Transferencia</option>
+          </select>
+        </label>
         <label>
           Hora inicio
           <input type="datetime-local" name="horaInicio" [(ngModel)]="formulario.horaInicio" required />
@@ -220,6 +228,7 @@ export class ReservasComponent implements OnInit {
     canchaId: '',
     horaInicio: '',
     horaFin: '',
+    metodoPago: 'EFECTIVO',
   };
   editandoId: string | null = null;
   mensaje = '';
@@ -242,11 +251,11 @@ export class ReservasComponent implements OnInit {
   }
 
   guardar(): void {
-    const { clienteId, canchaId, horaInicio, horaFin } = this.formulario;
+    const { clienteId, canchaId, horaInicio, horaFin, metodoPago } = this.formulario;
 
     const operacion = this.editandoId
       ? this.reservasService.editar(this.editandoId, { horaInicio, horaFin })
-      : this.reservasService.crear({ clienteId, canchaId, horaInicio, horaFin });
+      : this.reservasService.crear({ clienteId, canchaId, horaInicio, horaFin, metodoPago });
 
     operacion.subscribe({
       next: () => {
@@ -269,12 +278,13 @@ export class ReservasComponent implements OnInit {
       canchaId: reserva.cancha?.id ?? reserva.canchaId ?? '',
       horaInicio: reserva.horaInicio ? reserva.horaInicio.slice(0, 16) : '',
       horaFin: reserva.horaFin ? reserva.horaFin.slice(0, 16) : '',
+      metodoPago: 'EFECTIVO',
     };
   }
 
   cancelarEdicion(): void {
     this.editandoId = null;
-    this.formulario = { clienteId: '', canchaId: '', horaInicio: '', horaFin: '' };
+    this.formulario = { clienteId: '', canchaId: '', horaInicio: '', horaFin: '', metodoPago: 'EFECTIVO' };
   }
 
   confirmar(id: string): void {

@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Reserva } from '../reservas/reserva.entity';
+import { obtenerEstrategiaPago } from './estrategias/obtener-estrategia-pago';
 
 // Pago: cobro asociado a una reserva.
 @Entity('pagos')
@@ -20,9 +21,12 @@ export class Pago {
   @JoinColumn()
   reserva: Reserva;
 
-  // procesar(): simula el envío a una pasarela de pago; en este proyecto académico siempre aprueba.
+  // procesar(): delega en la EstrategiaPago asociada a metodoPago (patrón Strategy).
   procesar(): boolean {
-    this.procesadoEn = new Date();
-    return true;
+    const aprobado = obtenerEstrategiaPago(this.metodoPago).ejecutar(this);
+    if (aprobado) {
+      this.procesadoEn = new Date();
+    }
+    return aprobado;
   }
 }
