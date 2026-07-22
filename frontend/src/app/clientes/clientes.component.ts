@@ -108,16 +108,16 @@ import { Cliente, ClientesService } from './clientes.service';
       margin: 0 auto;
     }
 
-    /* Tarjetas con fondo blanco sólido y alta legibilidad */
+    /* Tarjetas con transparencia optimizada para ver el fondo de la cancha */
     .tarjeta {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.68);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
     
     h2 {
@@ -158,7 +158,7 @@ import { Cliente, ClientesService } from './clientes.service';
     .campo-grupo input {
       width: 100%;
       padding: 10px 14px;
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.9);
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
       font-size: 0.95rem;
@@ -240,11 +240,11 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .sin-datos {
-      color: #334155;
+      color: #1e293b;
       font-style: italic;
       text-align: center;
       padding: 20px;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .lista-clientes {
@@ -259,7 +259,7 @@ import { Cliente, ClientesService } from './clientes.service';
       align-items: center;
       padding: 16px 20px;
       margin-bottom: 8px;
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid #e2e8f0;
       border-left: 4px solid #064e3b;
       border-radius: 8px;
@@ -267,7 +267,7 @@ import { Cliente, ClientesService } from './clientes.service';
     }
 
     .item-cliente:hover {
-      background-color: #f8fafc;
+      background-color: rgba(255, 255, 255, 0.95);
     }
 
     .info-cliente {
