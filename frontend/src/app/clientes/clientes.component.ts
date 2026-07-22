@@ -101,7 +101,7 @@ import { Cliente, ClientesService } from './clientes.service';
       margin-left: calc(-50vw + 50%);
       padding: 40px 20px;
       background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)), 
-                  url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+                  url('https://images.unsplash.com/photo-1493538706211-316874a1e8b4?auto=format&fit=crop&w=2000&q=80') no-repeat center center scroll;
       background-size: cover;
       box-sizing: border-box;
       position: relative;
@@ -114,9 +114,9 @@ import { Cliente, ClientesService } from './clientes.service';
 
     /* Tarjetas semitransparentes (efecto cristal) */
     .tarjeta {
-      background: rgba(255, 255, 255, 0.90);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
