@@ -42,7 +42,6 @@ main {
    ========================================= */
 
 .contenedor-principal {
-  /* Ya no necesita el background, solo organiza el espacio */
   padding: 40px 20px;
   box-sizing: border-box;
 }
