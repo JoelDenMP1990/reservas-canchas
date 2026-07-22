@@ -137,19 +137,8 @@ import { Administrador, AdministradoresService } from '../administradores/admini
       background-size: cover;
     } 
 
-body{
-    margin: 0;
-    background: linear-gradient(rgba(10, 35, 18, 0.55), rgba(10, 35, 18, 0.55)),
-    url("https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=2000&q=80");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
-
     /* Tarjetas*/
-    .tarjeta {
-      
+    .tarjeta {  
       backdrop-filter: blur(6px);
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -287,7 +276,7 @@ body{
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem; /* Menos relleno dentro de cada tarjeta */
+      padding: 0.75rem 1rem; 
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       background: #fafbfc;
@@ -308,19 +297,19 @@ body{
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-bottom: 0.3rem; /* Menos espacio debajo del nombre */
+      margin-bottom: 0.3rem;
     }
 
     .cancha-header h3 {
       margin: 0;
-      font-size: 1rem; /* Tamaño de letra más pequeño */
+      font-size: 1rem;
       color: #2d3748;
     }
 
     .badge {
-      padding: 0.2rem 0.5rem; /* Más pequeño */
+      padding: 0.2rem 0.5rem; 
       border-radius: 999px;
-      font-size: 0.7rem; /* Letra más chica */
+      font-size: 0.7rem;
       font-weight: bold;
       text-transform: uppercase;
     }
@@ -336,8 +325,8 @@ body{
     }
 
     .cancha-detalle {
-      margin: 0.15rem 0; /* Menos espacio entre líneas */
-      font-size: 0.8rem; /* Letra más pequeña */
+      margin: 0.15rem 0; 
+      font-size: 0.8rem;
       color: #718096;
     }
 
