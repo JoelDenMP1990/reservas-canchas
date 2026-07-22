@@ -4,6 +4,7 @@ import { AdministradoresComponent } from './administradores/administradores.comp
 import { CanchasComponent } from './canchas/canchas.component';
 import { ReservasComponent } from './reservas/reservas.component';
 import { PagosComponent } from './pagos/pagos.component';
+import { NotificacionesComponent } from './notificaciones/notificaciones.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'canchas', pathMatch: 'full' },
@@ -12,4 +13,5 @@ export const routes: Routes = [
   { path: 'canchas', component: CanchasComponent },
   { path: 'reservas', component: ReservasComponent },
   { path: 'pagos', component: PagosComponent },
+  { path: 'notificaciones', component: NotificacionesComponent },
 ];
