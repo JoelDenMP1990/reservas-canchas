@@ -137,6 +137,75 @@ describe('ReservasService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it('rechaza crear una reserva si la cancha ya tiene otra reserva confirmada en ese horario', async () => {
+    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
+    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+    reservasRepositorio.findOne.mockResolvedValue(
+      Object.assign(new Reserva(), { id: 'reserva-existente', estado: 'CONFIRMADA' }),
+    );
+
+    await expect(
+      service.crear({
+        clienteId: 'cliente-1',
+        canchaId: 'cancha-1',
+        horaInicio: '2026-08-01T10:00:00',
+        horaFin: '2026-08-01T12:00:00',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('consultarDisponibilidad() devuelve false si la cancha ya está reservada en ese horario', async () => {
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true });
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+    reservasRepositorio.findOne.mockResolvedValue(Object.assign(new Reserva(), { id: 'reserva-existente' }));
+
+    const disponible = await service.consultarDisponibilidad('cancha-1', '2026-08-01T10:00:00', '2026-08-01T12:00:00');
+
+    expect(disponible).toBe(false);
+  });
+
+  it('consultarDisponibilidad() devuelve true si la cancha está libre en ese horario', async () => {
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true });
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+    reservasRepositorio.findOne.mockResolvedValue(null);
+
+    const disponible = await service.consultarDisponibilidad('cancha-1', '2026-08-01T10:00:00', '2026-08-01T12:00:00');
+
+    expect(disponible).toBe(true);
+  });
+
+  it('consultarDisponibilidad() devuelve false si la cancha no está activa', async () => {
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: false });
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+
+    const disponible = await service.consultarDisponibilidad('cancha-1', '2026-08-01T10:00:00', '2026-08-01T12:00:00');
+
+    expect(disponible).toBe(false);
+  });
+
+  it('editar() rechaza reprogramar a un horario ya ocupado por otra reserva confirmada', async () => {
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1' });
+    const reserva = Object.assign(new Reserva(), {
+      id: 'reserva-1',
+      estado: 'PENDIENTE',
+      cancha,
+      horaInicio: new Date(Date.now() + 3 * 60 * 60 * 1000),
+      horaFin: new Date(Date.now() + 4 * 60 * 60 * 1000),
+    });
+    reservasRepositorio.findOne
+      .mockResolvedValueOnce(reserva)
+      .mockResolvedValueOnce(Object.assign(new Reserva(), { id: 'otra-reserva' }));
+
+    await expect(
+      service.editar('reserva-1', {
+        horaInicio: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
+        horaFin: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('editar() rechaza reprogramar a una hora de inicio en el pasado', async () => {
     const reserva = Object.assign(new Reserva(), {
       id: 'reserva-1',

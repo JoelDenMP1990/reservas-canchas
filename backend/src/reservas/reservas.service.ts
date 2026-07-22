@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { Reserva } from './reserva.entity';
 import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
@@ -62,6 +62,9 @@ export class ReservasService {
     if (horaFin <= horaInicio) {
       throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
     }
+    if (await this.haySolapamiento(cancha.id, horaInicio, horaFin)) {
+      throw new BadRequestException('La cancha ya tiene una reserva confirmada en ese horario');
+    }
 
     const reserva = this.reservasRepository.create({
       cliente,
@@ -113,6 +116,9 @@ export class ReservasService {
     if (horaFin <= horaInicio) {
       throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
     }
+    if (await this.haySolapamiento(reserva.cancha.id, horaInicio, horaFin)) {
+      throw new BadRequestException('La cancha ya tiene una reserva confirmada en ese horario');
+    }
 
     reserva.horaInicio = horaInicio;
     reserva.horaFin = horaFin;
@@ -141,6 +147,33 @@ export class ReservasService {
       throw new BadRequestException('Solo se puede eliminar una reserva pendiente; cancélala en su lugar');
     }
     await this.reservasRepository.remove(reserva);
+  }
+
+  // consultarDisponibilidad(): CU-01 — informa si una cancha está libre en un horario dado.
+  async consultarDisponibilidad(canchaId: string, horaInicioStr: string, horaFinStr: string): Promise<boolean> {
+    const cancha = await this.canchasRepository.findOneBy({ id: canchaId });
+    if (!cancha) {
+      throw new NotFoundException('Cancha no encontrada');
+    }
+    if (!cancha.estaDisponible()) {
+      return false;
+    }
+    const horaInicio = new Date(horaInicioStr);
+    const horaFin = new Date(horaFinStr);
+    return !(await this.haySolapamiento(canchaId, horaInicio, horaFin));
+  }
+
+  // haySolapamiento(): true si la cancha ya tiene una reserva CONFIRMADA que cruza ese horario.
+  private async haySolapamiento(canchaId: string, horaInicio: Date, horaFin: Date): Promise<boolean> {
+    const conflicto = await this.reservasRepository.findOne({
+      where: {
+        cancha: { id: canchaId },
+        estado: 'CONFIRMADA',
+        horaInicio: LessThan(horaFin),
+        horaFin: MoreThan(horaInicio),
+      },
+    });
+    return !!conflicto;
   }
 
   private async notificar(reserva: Reserva, tipo: string, mensaje: string): Promise<void> {
