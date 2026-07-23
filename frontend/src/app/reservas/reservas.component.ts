@@ -41,6 +41,14 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 
     <div class="tarjeta">
       <h2>Lista de reservas</h2>
+      <!--  FILTRO AGREGADO -->
+      <div class="filtro">
+        <label>
+          <input type="checkbox" [(ngModel)]="verSoloMisReservas" (change)="aplicarFiltro()">
+          Mostrar solo mis reservas
+        </label>
+      </div>
+
       <p *ngIf="mensaje" [class]="mensajeTipo">{{ mensaje }}</p>
       <ul>
         <li *ngFor="let r of reservas">
@@ -78,6 +86,23 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       margin-bottom: 2rem;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
       border: 1px solid #e2e8f0;
+    }
+
+    /* ESTILO FILTRO */
+    .filtro {
+      margin: 1rem 0;
+      padding: 0.8rem;
+      background: #f0fdf4;
+      border-radius: 8px;
+      border: 1px solid #bbf7d0;
+    }
+    .filtro label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: #166534;
     }
 
     h2 {
@@ -213,6 +238,11 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 })
 export class ReservasComponent implements OnInit {
   reservas: Reserva[] = [];
+  todasReservas: Reserva[] = []; 
+  //  VARIABLES FILTRO
+  verSoloMisReservas: boolean = false;
+  clienteActualId: string = '';
+
   clientes: Cliente[] = [];
   canchas: Cancha[] = [];
   formulario = {
@@ -238,8 +268,23 @@ export class ReservasComponent implements OnInit {
   }
 
   refrescar(): void {
-    this.reservasService.listar().subscribe((reservas) => (this.reservas = reservas));
+    this.reservasService.listar().subscribe((datos) => {
+      this.todasReservas = datos; // 🆕 GUARDA TODAS
+      this.aplicarFiltro(); // 🆕 APLICA EL FILTRO INMEDIATAMENTE
+    });
   }
+
+  // FUNCIÓN PARA FILTRAR
+ aplicarFiltro(): void {
+  if (this.verSoloMisReservas && this.clienteActualId) {
+    this.reservas = this.todasReservas.filter(r => 
+      // Compara el ID sin usar $any
+      (r.cliente?.id || (r as any).clienteId) === this.clienteActualId
+    );
+  } else {
+    this.reservas = this.todasReservas;
+  }
+}
 
   guardar(): void {
     const { clienteId, canchaId, horaInicio, horaFin } = this.formulario;
