@@ -5,8 +5,14 @@ Proyecto académico — **Diseño de Software** — sistema de reservas de canch
 ## Descripción
 
 Permite a administradores registrar canchas, a clientes reservarlas por horario, y procesar el pago
-de cada reserva. El diseño sigue el diagrama de clases del equipo: 6 clases, cada una su propio
-módulo en backend y frontend, con relaciones bien definidas en la base de datos.
+de cada reserva (con notificaciones al cliente sobre el estado de sus reservas). El diseño sigue el
+diagrama de clases del equipo: 6 clases, cada una su propio módulo en backend y frontend, con
+relaciones bien definidas en la base de datos.
+
+Al entrar, se elige un rol (Cliente o Administrador) en vez de un login real — es un proyecto de
+prueba, así que esto basta para diferenciar qué ve cada quien: el Administrador ve y gestiona todo,
+el Cliente solo ve Reservas y Canchas (en modo consulta, para revisar disponibilidad antes de
+reservar).
 
 ## Arquitectura
 
@@ -22,14 +28,16 @@ backend/src/
   canchas/           Cancha
   reservas/          Reserva
   pagos/             Pago
-  notificaciones/     Notificaciones 
+  notificaciones/    Notificacion   (aviso al cliente sobre el estado de su reserva)
 frontend/src/app/
-  clientes/          pantalla CRUD de Cliente
-  administradores/   pantalla CRUD de Administrador
-  canchas/           pantalla CRUD de Cancha
-  reservas/          pantalla CRUD de Reserva (crear, reprogramar, confirmar, cancelar)
-  pagos/             pantalla CRUD de Pago (registrar pago = confirma la reserva)
-  Notificaciones/     pantalla view 
+  inicio/            pantalla de inicio: elegir rol (Cliente / Administrador)
+  sesion/            guarda el rol/cliente elegido para el resto de la sesión
+  clientes/          pantalla CRUD de Cliente (solo Administrador)
+  administradores/   pantalla CRUD de Administrador (solo Administrador)
+  canchas/           pantalla CRUD de Cancha (Administrador) / consulta de disponibilidad (Cliente)
+  reservas/          pantalla de Reserva (crear, confirmar, cancelar)
+  pagos/             pantalla CRUD de Pago (registrar pago = confirma la reserva, solo Administrador)
+  notificaciones/    pantalla de Notificacion (solo Administrador)
 db/
   init.sql           copia completa de la base (esquema + datos de prueba)
 ```
@@ -43,6 +51,7 @@ cada integrante del equipo pueda ubicar y trabajar sobre "su" clase sin pisar el
 - Un **Cliente** realiza muchas **Reservas** (1 a 0..*).
 - Una **Cancha** tiene muchas **Reservas** (1 a 0..*).
 - Una **Reserva** genera a lo sumo un **Pago** (1 a 0..1).
+- Una **Reserva** genera muchas **Notificaciones** (1 a 0..*).
 
 ## Requisitos
 
@@ -66,6 +75,10 @@ cada integrante del equipo pueda ubicar y trabajar sobre "su" clase sin pisar el
 
    Esto crea las 5 tablas con sus relaciones y deja datos de prueba listos: 2 administradores,
    3 clientes, 3 canchas y 3 reservas (una confirmada con pago, una cancelada, una pendiente).
+
+   `db/init.sql` es un dump tomado antes de agregar el módulo `notificaciones/`, así que todavía
+   no incluye esa tabla. Si partes de este dump, la tabla `notificaciones` no existirá hasta que
+   corras el backend con `synchronize: true` (la crea sola) o hagas un nuevo dump.
 
 ## Instalación
 
@@ -121,4 +134,4 @@ Corre la suite de Jest del backend (pruebas simples y directas sobre las entidad
 | Integrante | Dario Duque |
 | Integrante | Dayana Guilcaso |
 | Integrante | Leonardo Reyes |
-| Integrante | Ely Troya |
+| Integrante | Daniel Troya |
