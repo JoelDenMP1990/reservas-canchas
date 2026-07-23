@@ -22,12 +22,14 @@ backend/src/
   canchas/           Cancha
   reservas/          Reserva
   pagos/             Pago
+  notificaciones/     Notificaciones 
 frontend/src/app/
   clientes/          pantalla CRUD de Cliente
   administradores/   pantalla CRUD de Administrador
   canchas/           pantalla CRUD de Cancha
   reservas/          pantalla CRUD de Reserva (crear, reprogramar, confirmar, cancelar)
   pagos/             pantalla CRUD de Pago (registrar pago = confirma la reserva)
+  Notificaciones/     pantalla view 
 db/
   init.sql           copia completa de la base (esquema + datos de prueba)
 ```
