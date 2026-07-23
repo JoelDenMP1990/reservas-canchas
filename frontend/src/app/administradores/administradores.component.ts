@@ -126,6 +126,13 @@ template: `
     {{ administradorSeleccionado.areaAsignada }}
   </p>
 
+  <button
+    type="button"
+    (click)="editar(administradorSeleccionado)"
+  >
+    Editar administrador
+  </button>
+
   <hr />
 
   <button
@@ -483,6 +490,7 @@ this.administradores = administradores;
 }
 
 guardarAdministrador(): void {
+const estabaEditando = Boolean(this.editandoAdministradorId);
 const operacion = this.editandoAdministradorId
 ? this.administradoresService.editar(
 this.editandoAdministradorId,
@@ -494,13 +502,20 @@ this.formularioAdministrador,
 
 operacion.subscribe({
   next: () => {
-    this.mensaje = this.editandoAdministradorId
+    this.mensaje = estabaEditando
       ? 'Administrador actualizado.'
       : 'Administrador registrado.';
 
     this.mensajeTipo = 'mensaje exito';
 
     this.cancelarEdicionAdministrador();
+
+    if (estabaEditando) {
+      this.administradorSeleccionadoId = '';
+      this.administradorSeleccionado = null;
+      this.canchas = [];
+      this.reporte = null;
+    }
 
     this.refrescarAdministradores();
   },
@@ -675,13 +690,15 @@ this.administradoresService
 editar(administrador: Administrador): void {
 this.editandoAdministradorId = administrador.id;
 
-
 this.formularioAdministrador = {
   nombre: administrador.nombre,
   areaAsignada: administrador.areaAsignada,
 };
 
-
+this.administradorSeleccionadoId = '';
+this.administradorSeleccionado = null;
+this.canchas = [];
+this.reporte = null;
 }
 
 cancelarEdicionAdministrador(): void {
