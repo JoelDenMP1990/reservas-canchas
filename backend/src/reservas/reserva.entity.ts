@@ -4,6 +4,7 @@ import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
+import { Horario } from './horario';
 
 // Reserva: uso de una cancha por un cliente en un horario determinado.
 @Entity('reservas')
@@ -60,7 +61,7 @@ export class Reserva {
 
   // calcularPrecio(): horas reservadas por la tarifa base de la cancha.
   calcularPrecio(): number {
-    const horas = (this.horaFin.getTime() - this.horaInicio.getTime()) / (1000 * 60 * 60);
-    return horas * this.cancha.getTarifaBase();
+  const horario = new Horario(this.horaInicio, this.horaFin);
+  return horario.duracionEnHoras() * this.cancha.getTarifaBase();
   }
 }
