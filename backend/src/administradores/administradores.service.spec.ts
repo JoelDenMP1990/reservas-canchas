@@ -110,4 +110,53 @@ describe('AdministradoresService', () => {
       { inicio: '11:00', fin: '12:00', ocupada: false },
     ]);
   });
+
+  it('reporteOcupacion() incluye reservas vigentes, su cliente y las canchas libres del administrador', async () => {
+    administradoresRepositorio.findOneBy.mockResolvedValue(
+      Object.assign(new Administrador(), { id: 'admin-1', nombre: 'Ana Torres', areaAsignada: 'Zona Norte' }),
+    );
+    canchasRepositorio.find.mockResolvedValue([
+      Object.assign(new Cancha(), {
+        id: 'cancha-1',
+        nombre: 'Cancha Fútbol 1',
+        activa: true,
+        reservas: [
+          Object.assign(new Reserva(), {
+            estado: 'CONFIRMADA',
+            horaInicio: horaHoy(10),
+            horaFin: horaHoy(12),
+            cliente: { nombre: 'Juan Pérez' },
+          }),
+          Object.assign(new Reserva(), {
+            estado: 'CANCELADA',
+            horaInicio: horaHoy(13),
+            horaFin: horaHoy(14),
+            cliente: { nombre: 'No debe aparecer' },
+          }),
+        ],
+      }),
+      Object.assign(new Cancha(), { id: 'cancha-2', nombre: 'Cancha Comunitaria', activa: false, reservas: [] }),
+    ]);
+
+    const reporte = await service.reporteOcupacion('admin-1');
+
+    expect(canchasRepositorio.find).toHaveBeenCalledWith({
+      where: { administrador: { id: 'admin-1' } },
+      relations: { reservas: { cliente: true } },
+    });
+    expect(reporte).toEqual({
+      administrador: { id: 'admin-1', nombre: 'Ana Torres', areaAsignada: 'Zona Norte' },
+      resumen: { canchasRegistradas: 2, canchasActivas: 1 },
+      ocupacion: [
+        {
+          cancha: 'Cancha Fútbol 1',
+          cliente: 'Juan Pérez',
+          horaInicio: horaHoy(10),
+          horaFin: horaHoy(12),
+          estado: 'CONFIRMADA',
+        },
+        { cancha: 'Cancha Comunitaria', estado: 'LIBRE' },
+      ],
+    });
+  });
 });

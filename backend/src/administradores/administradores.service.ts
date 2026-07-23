@@ -16,6 +16,27 @@ export interface FranjaHoraria {
 
 export type CanchaConHorarios = Cancha & { horarios: FranjaHoraria[] };
 
+export interface DetalleOcupacion {
+  cancha: string;
+  estado: string;
+  cliente?: string;
+  horaInicio?: Date;
+  horaFin?: Date;
+}
+
+export interface ReporteOcupacion {
+  administrador: {
+    id: string;
+    nombre: string;
+    areaAsignada: string;
+  };
+  resumen: {
+    canchasRegistradas: number;
+    canchasActivas: number;
+  };
+  ocupacion: DetalleOcupacion[];
+}
+
 @Injectable()
 export class AdministradoresService {
   constructor(
@@ -73,14 +94,45 @@ export class AdministradoresService {
     await this.canchasRepository.remove(cancha);
   }
 
-  // reporteOcupacion(): resumen básico de las canchas que administra.
-  async reporteOcupacion(administradorId: string): Promise<string> {
-    await this.obtenerPorId(administradorId);
+  // reporteOcupacion(): detalle las reservas vigentes de las canchas del administrador.
+  async reporteOcupacion(administradorId: string): Promise<ReporteOcupacion> {
+    const administrador = await this.obtenerPorId(administradorId);
     const canchas = await this.canchasRepository.find({
       where: { administrador: { id: administradorId } },
+      relations: { reservas: { cliente: true } },
     });
-    const activas = canchas.filter((c) => c.activa).length;
-    return `${canchas.length} canchas registradas, ${activas} activas`;
+
+    const ahora = new Date();
+    const ocupacion = canchas.flatMap((cancha) => {
+      const reservasVigentes = (cancha.reservas ?? []).filter(
+        (reserva) => reserva.estado !== 'CANCELADA' && reserva.horaFin >= ahora,
+      );
+
+      if (reservasVigentes.length === 0) {
+        return [{ cancha: cancha.nombre, estado: 'LIBRE' }];
+      }
+
+      return reservasVigentes.map((reserva) => ({
+        cancha: cancha.nombre,
+        cliente: reserva.cliente.nombre,
+        horaInicio: reserva.horaInicio,
+        horaFin: reserva.horaFin,
+        estado: reserva.estado,
+      }));
+    });
+
+    return {
+      administrador: {
+        id: administrador.id,
+        nombre: administrador.nombre,
+        areaAsignada: administrador.areaAsignada,
+      },
+      resumen: {
+        canchasRegistradas: canchas.length,
+        canchasActivas: canchas.filter((cancha) => cancha.activa).length,
+      },
+      ocupacion,
+    };
   }
   // listarCanchas(): las canchas del administrador, con el horario de hoy partido en
   // franjas de 1 hora (entre apertura y cierre), cada una marcada libre u ocupada
@@ -135,4 +187,3 @@ export class AdministradoresService {
     return franjas;
   }
 }
-

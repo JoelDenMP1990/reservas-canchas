@@ -30,6 +30,23 @@ export interface Cancha {
   };
 }
 
+export interface DetalleOcupacion {
+  cancha: string;
+  estado: string;
+  cliente?: string;
+  horaInicio?: string;
+  horaFin?: string;
+}
+
+export interface ReporteOcupacion {
+  administrador: Administrador;
+  resumen: {
+    canchasRegistradas: number;
+    canchasActivas: number;
+  };
+  ocupacion: DetalleOcupacion[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -75,12 +92,9 @@ export class AdministradoresService {
   // REPORTES
   // =========================
 
-  reporteOcupacion(id: string): Observable<string> {
-    return this.http.get(
+  reporteOcupacion(id: string): Observable<ReporteOcupacion> {
+    return this.http.get<ReporteOcupacion>(
       `${API_BASE_URL}/administradores/${id}/reporte-ocupacion`,
-      {
-        responseType: 'text',
-      },
     );
   }
 

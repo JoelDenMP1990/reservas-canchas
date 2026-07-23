@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Administrador, AdministradoresService } from './administradores.service';
+import { Administrador, AdministradoresService, ReporteOcupacion } from './administradores.service';
 
 interface FranjaHoraria {
 inicio: string;
@@ -268,10 +268,29 @@ template: `
     Ver reporte de ocupación
   </button>
 
-  <p *ngIf="reporte">
-    <strong>Reporte:</strong>
-    {{ reporte }}
-  </p>
+  <section *ngIf="reporte" class="reporte-ocupacion">
+    <h3>Reporte de ocupación</h3>
+    <p><strong>Administrador:</strong> {{ reporte.administrador.nombre }}</p>
+    <p><strong>Área:</strong> {{ reporte.administrador.areaAsignada }}</p>
+
+    <h4>Resumen</h4>
+    <p><strong>Canchas registradas:</strong> {{ reporte.resumen.canchasRegistradas }}</p>
+    <p><strong>Canchas activas:</strong> {{ reporte.resumen.canchasActivas }}</p>
+
+    <h4>Ocupación actual</h4>
+    <div class="grilla-ocupacion">
+      <div *ngFor="let detalle of reporte.ocupacion" class="detalle-ocupacion">
+        <p><strong>Cancha:</strong> {{ detalle.cancha }}</p>
+        <ng-container *ngIf="detalle.estado !== 'LIBRE'; else canchaLibre">
+          <p><strong>Cliente:</strong> {{ detalle.cliente }}</p>
+          <p><strong>Fecha:</strong> {{ detalle.horaInicio | date:'yyyy-MM-dd' }}</p>
+          <p><strong>Horario:</strong> {{ detalle.horaInicio | date:'HH:mm' }} - {{ detalle.horaFin | date:'HH:mm' }}</p>
+        </ng-container>
+        <ng-template #canchaLibre></ng-template>
+        <p><strong>Estado:</strong> {{ detalle.estado }}</p>
+      </div>
+    </div>
+  </section>
 </div>
 
 <p
@@ -358,6 +377,20 @@ styles: [`
   .punto.libre { background-color: #16a34a; }
   .punto.ocupada { background-color: #dc2626; }
   .punto.inactiva { background-color: #6b7280; }
+
+  .reporte-ocupacion { margin-top: 1rem; }
+  .grilla-ocupacion {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .detalle-ocupacion {
+    border: 1px solid #bfdbfe;
+    border-left: 3px solid #2563eb;
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+  .detalle-ocupacion p { margin: 0.2rem 0; }
 `],
 })
 export class AdministradoresComponent implements OnInit {
@@ -386,7 +419,7 @@ editandoAdministradorId: string | null = null;
 editandoCanchaId: string | null = null;
 mostrarFormularioCancha = false;
 
-reporte = '';
+reporte: ReporteOcupacion | null = null;
 
 mensaje = '';
 mensajeTipo = '';
@@ -443,6 +476,7 @@ operacion.subscribe({
 
 seleccionarAdministrador(): void {
 this.cancelarEdicionCancha();
+this.reporte = null;
 
 if (!this.administradorSeleccionadoId) {
 this.administradorSeleccionado = null;
@@ -571,8 +605,14 @@ this.administradoresService
 verReporte(administrador: Administrador): void {
 this.administradoresService
 .reporteOcupacion(administrador.id)
-.subscribe((reporte) => {
-this.reporte = reporte;
+.subscribe({
+  next: (reporte) => {
+    this.reporte = reporte;
+  },
+  error: (error) => {
+    this.mensaje = error.error?.message ?? 'No se pudo generar el reporte de ocupación.';
+    this.mensajeTipo = 'mensaje error';
+  },
 });
 }
 
@@ -624,4 +664,3 @@ this.refrescarAdministradores();
 });
 }
 }
-
