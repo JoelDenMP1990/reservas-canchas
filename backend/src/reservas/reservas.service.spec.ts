@@ -7,6 +7,7 @@ import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
+import { MetodoPago } from '../pagos/metodo-pago.enum';
 
 describe('ReservasService', () => {
   let service: ReservasService;
@@ -58,7 +59,7 @@ describe('ReservasService', () => {
       canchaId: 'cancha-1',
       horaInicio: '2026-08-01T10:00:00',
       horaFin: '2026-08-01T12:00:00',
-      metodoPago: 'EFECTIVO',
+      metodoPago: MetodoPago.EFECTIVO,
     });
 
     expect(reserva.monto).toBe(20);
@@ -88,51 +89,23 @@ describe('ReservasService', () => {
     expect(notificacionesRepositorio.save).toHaveBeenCalledTimes(1);
   });
 
-  it('rechaza la reserva si la cancha no está activa', async () => {
+  it.each([
+    ['la cancha no está activa', { activa: false, tarifaBasePorHora: 10 }, '2026-08-01T10:00:00', '2026-08-01T12:00:00'],
+    ['la hora de inicio ya pasó', { activa: true, tarifaBasePorHora: 10 }, '2020-01-01T10:00:00', '2020-01-01T12:00:00'],
+    [
+      'la hora de fin no es posterior a la de inicio',
+      { activa: true, tarifaBasePorHora: 10 },
+      '2026-08-01T12:00:00',
+      '2026-08-01T10:00:00',
+    ],
+  ])('rechaza crear una reserva si %s', async (_descripcion, datosCancha, horaInicio, horaFin) => {
     const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
-    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: false, tarifaBasePorHora: 10 });
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', ...datosCancha });
     clientesRepositorio.findOneBy.mockResolvedValue(cliente);
     canchasRepositorio.findOneBy.mockResolvedValue(cancha);
 
     await expect(
-      service.crear({
-        clienteId: 'cliente-1',
-        canchaId: 'cancha-1',
-        horaInicio: '2026-08-01T10:00:00',
-        horaFin: '2026-08-01T12:00:00',
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-
-  it('rechaza crear una reserva con hora de inicio en el pasado', async () => {
-    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
-    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
-    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
-    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
-
-    await expect(
-      service.crear({
-        clienteId: 'cliente-1',
-        canchaId: 'cancha-1',
-        horaInicio: '2020-01-01T10:00:00',
-        horaFin: '2020-01-01T12:00:00',
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-
-  it('rechaza crear una reserva cuya hora de fin no es posterior a la de inicio', async () => {
-    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
-    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
-    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
-    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
-
-    await expect(
-      service.crear({
-        clienteId: 'cliente-1',
-        canchaId: 'cancha-1',
-        horaInicio: '2026-08-01T12:00:00',
-        horaFin: '2026-08-01T10:00:00',
-      }),
+      service.crear({ clienteId: 'cliente-1', canchaId: 'cancha-1', horaInicio, horaFin }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
