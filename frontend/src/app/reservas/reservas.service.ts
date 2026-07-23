@@ -62,3 +62,4 @@ export class ReservasService {
     return this.http.post<Reserva>(`${this.apiUrl}/${id}/cancelar`, {});
   }
 }
+// Servicio actualizado para la gestión de reservas
