@@ -57,6 +57,25 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 
     <div class="tarjeta animate-fade-in">
       <h2>Lista de reservas</h2>
+      <div class="filtro-cliente">
+        <label>
+          Cliente actual
+          <select name="clienteActualId" [(ngModel)]="clienteActualId" (change)="aplicarFiltro()">
+            <option value="">-- Selecciona tu cliente --</option>
+            <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
+          </select>
+        </label>
+        <label class="checkbox">
+          <input
+            type="checkbox"
+            name="verSoloMisReservas"
+            [(ngModel)]="verSoloMisReservas"
+            [disabled]="!clienteActualId"
+            (change)="aplicarFiltro()"
+          />
+          Mostrar solo mis reservas
+        </label>
+      </div>
       <ul>
         <li *ngFor="let r of reservas">
           <div>
@@ -213,6 +232,34 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       background-color: #b45309;
     }
 
+    .filtro-cliente {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.2rem;
+      margin: 1rem 0 1.2rem;
+      padding: 0.8rem;
+      background: #f0fdf4;
+      border-radius: 8px;
+      border: 1px solid #bbf7d0;
+    }
+
+    .filtro-cliente label {
+      margin: 0;
+    }
+
+    .filtro-cliente label.checkbox {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+      color: #166534;
+    }
+
+    .filtro-cliente select {
+      width: auto;
+      min-width: 200px;
+    }
+
     .etiqueta-estado {
       font-size: 0.8rem;
       font-weight: 600;
@@ -235,6 +282,9 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 })
 export class ReservasComponent implements OnInit {
   reservas: Reserva[] = [];
+  private todasReservas: Reserva[] = [];
+  clienteActualId = '';
+  verSoloMisReservas = false;
   clientes: Cliente[] = [];
   canchas: Cancha[] = [];
   formulario = {
@@ -261,7 +311,20 @@ export class ReservasComponent implements OnInit {
   }
 
   refrescar(): void {
-    this.reservasService.listar().subscribe((reservas) => (this.reservas = reservas));
+    this.reservasService.listar().subscribe((reservas) => {
+      this.todasReservas = reservas;
+      this.aplicarFiltro();
+    });
+  }
+
+  // aplicarFiltro(): CU "verificar mi reserva" — sin login, el cliente se identifica
+  // eligiéndose a sí mismo en "Cliente actual" para ver solo sus propias reservas.
+  aplicarFiltro(): void {
+    if (this.verSoloMisReservas && this.clienteActualId) {
+      this.reservas = this.todasReservas.filter((r) => r.cliente?.id === this.clienteActualId);
+    } else {
+      this.reservas = this.todasReservas;
+    }
   }
 
   guardar(): void {
