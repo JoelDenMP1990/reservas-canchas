@@ -8,6 +8,7 @@ import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
 import { MetodoPago } from '../pagos/metodo-pago.enum';
+import { EstadoReserva } from './estado-reserva.enum';
 
 @Injectable()
 export class ReservasService {
@@ -91,22 +92,32 @@ export class ReservasService {
       cancha,
       horaInicio,
       horaFin,
-      estado: 'PENDIENTE',
+      estado: EstadoReserva.PENDIENTE,
     });
     reserva.monto = reserva.calcularPrecio();
     return this.reservasRepository.save(reserva);
   }
 
-  // confirmarConPago(): omite el pago si la cancha es gratuita; si no, lo procesa y confirma
-  // la reserva solo si fue aprobado. Siempre notifica al cliente el resultado.
+  // confirmarConPago(): despacha entre los dos caminos posibles — cancha gratuita (sin pago)
+  // o cancha de pago (procesa el pago) — cada uno descompuesto en su propio método
+  // (Decompose Conditional, corrige el mal olor de condicional mezclado con la lógica).
   private async confirmarConPago(reserva: Reserva, cancha: Cancha, metodoPago?: MetodoPago): Promise<Reserva> {
     if (cancha.esGratuita()) {
-      reserva.confirmar();
-      await this.reservasRepository.save(reserva);
-      await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada (cancha gratuita).');
-      return reserva;
+      return this.confirmarSinPago(reserva);
     }
+    return this.confirmarProcesandoPago(reserva, metodoPago);
+  }
 
+  // confirmarSinPago(): cancha gratuita — confirma directo y notifica, sin crear ningún Pago.
+  private async confirmarSinPago(reserva: Reserva): Promise<Reserva> {
+    reserva.confirmar();
+    await this.reservasRepository.save(reserva);
+    await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada (cancha gratuita).');
+    return reserva;
+  }
+
+  // confirmarProcesandoPago(): cancha de pago — procesa el Pago y confirma la reserva solo si fue aprobado.
+  private async confirmarProcesandoPago(reserva: Reserva, metodoPago?: MetodoPago): Promise<Reserva> {
     const pago = this.pagosRepository.create({
       reserva,
       monto: reserva.monto,
@@ -160,7 +171,7 @@ export class ReservasService {
     const conflicto = await this.reservasRepository.findOne({
       where: {
         cancha: { id: canchaId },
-        estado: 'CONFIRMADA',
+        estado: EstadoReserva.CONFIRMADA,
         horaInicio: LessThan(horaFin),
         horaFin: MoreThan(horaInicio),
       },
