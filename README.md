@@ -5,7 +5,7 @@ Proyecto académico — **Diseño de Software** — sistema de reservas de canch
 ## Descripción
 
 Permite a administradores registrar canchas, a clientes reservarlas por horario, y procesar el pago
-de cada reserva. El diseño sigue el diagrama de clases del equipo: 5 clases, cada una su propio
+de cada reserva. El diseño sigue el diagrama de clases del equipo: 6 clases, cada una su propio
 módulo en backend y frontend, con relaciones bien definidas en la base de datos.
 
 ## Arquitectura
