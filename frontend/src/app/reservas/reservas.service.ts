@@ -3,6 +3,21 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../api-base';
 
+export interface ClienteReserva {
+  id: string;
+  nombre: string;
+}
+
+export interface CanchaReserva {
+  id: string;
+  nombre: string;
+}
+
+export interface PagoReserva {
+  id: string;
+  metodoPago: string;
+}
+
 export interface Reserva {
   id: string;
   estado: string;
@@ -10,34 +25,40 @@ export interface Reserva {
   horaFin: string;
   creadaEn: string;
   monto: number;
-  cliente?: { id: string; nombre: string };
-  cancha?: { id: string; nombre: string };
-  pago?: { id: string; metodoPago: string };
+  cliente?: ClienteReserva;
+  cancha?: CanchaReserva;
+  pago?: PagoReserva;
 }
 
-@Injectable({ providedIn: 'root' })
+export interface CrearReservaDto {
+  clienteId: string;
+  canchaId: string;
+  horaInicio: string;
+  horaFin: string;
+  metodoPago?: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class ReservasService {
+  private readonly apiUrl = `${API_BASE_URL}/reservas`;
+
   constructor(private readonly http: HttpClient) {}
 
   listar(): Observable<Reserva[]> {
-    return this.http.get<Reserva[]>(`${API_BASE_URL}/reservas`);
+    return this.http.get<Reserva[]>(this.apiUrl);
   }
 
-  crear(datos: {
-    clienteId: string;
-    canchaId: string;
-    horaInicio: string;
-    horaFin: string;
-    metodoPago?: string;
-  }): Observable<Reserva> {
-    return this.http.post<Reserva>(`${API_BASE_URL}/reservas`, datos);
+  crear(datos: CrearReservaDto): Observable<Reserva> {
+    return this.http.post<Reserva>(this.apiUrl, datos);
   }
 
   confirmar(id: string): Observable<Reserva> {
-    return this.http.post<Reserva>(`${API_BASE_URL}/reservas/${id}/confirmar`, {});
+    return this.http.post<Reserva>(`${this.apiUrl}/${id}/confirmar`, {});
   }
 
   cancelar(id: string): Observable<Reserva> {
-    return this.http.post<Reserva>(`${API_BASE_URL}/reservas/${id}/cancelar`, {});
+    return this.http.post<Reserva>(`${this.apiUrl}/${id}/cancelar`, {});
   }
 }
