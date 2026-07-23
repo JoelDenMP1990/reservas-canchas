@@ -30,6 +30,39 @@ export interface Cancha {
   };
 }
 
+export interface DetalleOcupacion {
+  cancha: string;
+  estado: string;
+  cliente?: string;
+  horaInicio?: string;
+  horaFin?: string;
+}
+
+export interface ReporteOcupacion {
+  administrador: Administrador;
+  resumen: {
+    canchasRegistradas: number;
+    canchasActivas: number;
+  };
+  ocupacion: DetalleOcupacion[];
+}
+
+export interface ResumenGeneralSistema {
+  administradores: number;
+  canchasRegistradas: number;
+  canchasActivas: number;
+  canchasInactivas: number;
+  clientes: number;
+  reservasTotales: number;
+  reservasConfirmadas: number;
+  reservasPendientes: number;
+  reservasCanceladas: number;
+  pagosRegistrados: number;
+  ingresosTotales: number;
+  canchasOcupadasActualmente: number;
+  canchasLibresActualmente: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -75,12 +108,15 @@ export class AdministradoresService {
   // REPORTES
   // =========================
 
-  reporteOcupacion(id: string): Observable<string> {
-    return this.http.get(
+  reporteOcupacion(id: string): Observable<ReporteOcupacion> {
+    return this.http.get<ReporteOcupacion>(
       `${API_BASE_URL}/administradores/${id}/reporte-ocupacion`,
-      {
-        responseType: 'text',
-      },
+    );
+  }
+
+  resumenGeneral(): Observable<ResumenGeneralSistema> {
+    return this.http.get<ResumenGeneralSistema>(
+      `${API_BASE_URL}/administradores/resumen-general`,
     );
   }
 
