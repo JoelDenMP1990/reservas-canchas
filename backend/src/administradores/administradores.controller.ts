@@ -13,6 +13,11 @@ export class AdministradoresController {
     return this.administradoresService.listar();
   }
 
+  @Get('resumen-general')
+  resumenGeneral() {
+    return this.administradoresService.resumenGeneral();
+  }
+
   @Get(':id/canchas')
   listarCanchas(@Param('id') id: string) {
     return this.administradoresService.listarCanchas(id);

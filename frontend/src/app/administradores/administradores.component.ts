@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Administrador, AdministradoresService, ReporteOcupacion } from './administradores.service';
+import { Administrador, AdministradoresService, ReporteOcupacion, ResumenGeneralSistema } from './administradores.service';
 
 interface FranjaHoraria {
 inicio: string;
@@ -86,6 +86,31 @@ template: `
       {{ administrador.nombre }} — {{ administrador.areaAsignada }}
     </option>
   </select>
+</div>
+
+<div class="tarjeta animate-fade-in">
+  <button type="button" (click)="verResumenGeneral()">
+    Resumen general del sistema
+  </button>
+
+  <section *ngIf="resumenGeneral" class="resumen-general">
+    <h2>Resumen general del sistema</h2>
+    <div class="grilla-resumen">
+      <div class="tarjeta-metrica"><strong>Administradores</strong><span>{{ resumenGeneral.administradores }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canchas registradas</strong><span>{{ resumenGeneral.canchasRegistradas }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canchas activas</strong><span>{{ resumenGeneral.canchasActivas }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canchas inactivas</strong><span>{{ resumenGeneral.canchasInactivas }}</span></div>
+      <div class="tarjeta-metrica"><strong>Clientes</strong><span>{{ resumenGeneral.clientes }}</span></div>
+      <div class="tarjeta-metrica"><strong>Reservas totales</strong><span>{{ resumenGeneral.reservasTotales }}</span></div>
+      <div class="tarjeta-metrica"><strong>Confirmadas</strong><span>{{ resumenGeneral.reservasConfirmadas }}</span></div>
+      <div class="tarjeta-metrica"><strong>Pendientes</strong><span>{{ resumenGeneral.reservasPendientes }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canceladas</strong><span>{{ resumenGeneral.reservasCanceladas }}</span></div>
+      <div class="tarjeta-metrica"><strong>Pagos registrados</strong><span>{{ resumenGeneral.pagosRegistrados }}</span></div>
+      <div class="tarjeta-metrica"><strong>Ingresos totales</strong><span>{{ resumenGeneral.ingresosTotales | currency:'USD':'symbol':'1.2-2' }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canchas ocupadas ahora</strong><span>{{ resumenGeneral.canchasOcupadasActualmente }}</span></div>
+      <div class="tarjeta-metrica"><strong>Canchas libres ahora</strong><span>{{ resumenGeneral.canchasLibresActualmente }}</span></div>
+    </div>
+  </section>
 </div>
 
 <div
@@ -391,6 +416,22 @@ styles: [`
     padding: 0.75rem;
   }
   .detalle-ocupacion p { margin: 0.2rem 0; }
+  .resumen-general { margin-top: 1rem; }
+  .grilla-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.75rem;
+  }
+  .tarjeta-metrica {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #eff6ff;
+  }
+  .tarjeta-metrica span { font-size: 1.3rem; color: #1d4ed8; }
 `],
 })
 export class AdministradoresComponent implements OnInit {
@@ -420,6 +461,7 @@ editandoCanchaId: string | null = null;
 mostrarFormularioCancha = false;
 
 reporte: ReporteOcupacion | null = null;
+resumenGeneral: ResumenGeneralSistema | null = null;
 
 mensaje = '';
 mensajeTipo = '';
@@ -611,6 +653,20 @@ this.administradoresService
   },
   error: (error) => {
     this.mensaje = error.error?.message ?? 'No se pudo generar el reporte de ocupación.';
+    this.mensajeTipo = 'mensaje error';
+  },
+});
+}
+
+verResumenGeneral(): void {
+this.administradoresService
+.resumenGeneral()
+.subscribe({
+  next: (resumen) => {
+    this.resumenGeneral = resumen;
+  },
+  error: (error) => {
+    this.mensaje = error.error?.message ?? 'No se pudo cargar el resumen general.';
     this.mensajeTipo = 'mensaje error';
   },
 });

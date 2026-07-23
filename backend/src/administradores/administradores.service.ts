@@ -7,6 +7,8 @@ import { EditarAdministradorDto } from './dto/editar-administrador.dto';
 import { RegistrarCanchaDto } from './dto/registrar-cancha.dto';
 import { Cancha } from '../canchas/cancha.entity';
 import { Reserva } from '../reservas/reserva.entity';
+import { Cliente } from '../clientes/cliente.entity';
+import { Pago } from '../pagos/pago.entity';
 
 export interface FranjaHoraria {
   inicio: string;
@@ -37,6 +39,22 @@ export interface ReporteOcupacion {
   ocupacion: DetalleOcupacion[];
 }
 
+export interface ResumenGeneralSistema {
+  administradores: number;
+  canchasRegistradas: number;
+  canchasActivas: number;
+  canchasInactivas: number;
+  clientes: number;
+  reservasTotales: number;
+  reservasConfirmadas: number;
+  reservasPendientes: number;
+  reservasCanceladas: number;
+  pagosRegistrados: number;
+  ingresosTotales: number;
+  canchasOcupadasActualmente: number;
+  canchasLibresActualmente: number;
+}
+
 @Injectable()
 export class AdministradoresService {
   constructor(
@@ -46,10 +64,66 @@ export class AdministradoresService {
     private readonly canchasRepository: Repository<Cancha>,
     @InjectRepository(Reserva)
     private readonly reservasRepository: Repository<Reserva>,
+    @InjectRepository(Cliente)
+    private readonly clientesRepository: Repository<Cliente>,
+    @InjectRepository(Pago)
+    private readonly pagosRepository: Repository<Pago>,
   ) {}
 
   listar(): Promise<Administrador[]> {
     return this.administradoresRepository.find();
+  }
+
+  async resumenGeneral(): Promise<ResumenGeneralSistema> {
+    const [
+      administradores,
+      canchasRegistradas,
+      canchasActivas,
+      clientes,
+      reservasTotales,
+      reservasConfirmadas,
+      reservasPendientes,
+      reservasCanceladas,
+      pagos,
+      canchas,
+    ] = await Promise.all([
+      this.administradoresRepository.count(),
+      this.canchasRepository.count(),
+      this.canchasRepository.count({ where: { activa: true } }),
+      this.clientesRepository.count(),
+      this.reservasRepository.count(),
+      this.reservasRepository.count({ where: { estado: 'CONFIRMADA' } }),
+      this.reservasRepository.count({ where: { estado: 'PENDIENTE' } }),
+      this.reservasRepository.count({ where: { estado: 'CANCELADA' } }),
+      this.pagosRepository.find(),
+      this.canchasRepository.find({ relations: { reservas: true } }),
+    ]);
+
+    const ahora = new Date();
+    const canchasOcupadasActualmente = canchas.filter((cancha) =>
+      (cancha.reservas ?? []).some(
+        (reserva) =>
+          reserva.estado !== 'CANCELADA' &&
+          reserva.horaInicio <= ahora &&
+          reserva.horaFin > ahora,
+      ),
+    ).length;
+
+    return {
+      administradores,
+      canchasRegistradas,
+      canchasActivas,
+      canchasInactivas: canchasRegistradas - canchasActivas,
+      clientes,
+      reservasTotales,
+      reservasConfirmadas,
+      reservasPendientes,
+      reservasCanceladas,
+      pagosRegistrados: pagos.length,
+      ingresosTotales: pagos.reduce((total, pago) => total + Number(pago.monto), 0),
+      canchasOcupadasActualmente,
+      canchasLibresActualmente: canchasRegistradas - canchasOcupadasActualmente,
+    };
   }
 
   async obtenerPorId(id: string): Promise<Administrador> {
