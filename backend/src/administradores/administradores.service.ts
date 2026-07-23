@@ -9,6 +9,7 @@ import { Cancha } from '../canchas/cancha.entity';
 import { Reserva } from '../reservas/reserva.entity';
 import { Cliente } from '../clientes/cliente.entity';
 import { Pago } from '../pagos/pago.entity';
+import { EstadoReserva } from '../reservas/estado-reserva.enum';
 
 export interface FranjaHoraria {
   inicio: string;
@@ -92,9 +93,9 @@ export class AdministradoresService {
       this.canchasRepository.count({ where: { activa: true } }),
       this.clientesRepository.count(),
       this.reservasRepository.count(),
-      this.reservasRepository.count({ where: { estado: 'CONFIRMADA' } }),
-      this.reservasRepository.count({ where: { estado: 'PENDIENTE' } }),
-      this.reservasRepository.count({ where: { estado: 'CANCELADA' } }),
+      this.reservasRepository.count({ where: { estado: EstadoReserva.CONFIRMADA } }),
+      this.reservasRepository.count({ where: { estado: EstadoReserva.PENDIENTE } }),
+      this.reservasRepository.count({ where: { estado: EstadoReserva.CANCELADA } }),
       this.pagosRepository.find(),
       this.canchasRepository.find({ relations: { reservas: true } }),
     ]);
@@ -103,7 +104,7 @@ export class AdministradoresService {
     const canchasOcupadasActualmente = canchas.filter((cancha) =>
       (cancha.reservas ?? []).some(
         (reserva) =>
-          reserva.estado !== 'CANCELADA' &&
+          reserva.estado !== EstadoReserva.CANCELADA &&
           reserva.horaInicio <= ahora &&
           reserva.horaFin > ahora,
       ),
@@ -179,7 +180,7 @@ export class AdministradoresService {
     const ahora = new Date();
     const ocupacion = canchas.flatMap((cancha) => {
       const reservasVigentes = (cancha.reservas ?? []).filter(
-        (reserva) => reserva.estado !== 'CANCELADA' && reserva.horaFin >= ahora,
+        (reserva) => reserva.estado !== EstadoReserva.CANCELADA && reserva.horaFin >= ahora,
       );
 
       if (reservasVigentes.length === 0) {
@@ -221,7 +222,7 @@ export class AdministradoresService {
     const canchasConHorarios: CanchaConHorarios[] = [];
     for (const cancha of canchas) {
       const reservasDeHoy = await this.reservasRepository.find({
-        where: { cancha: { id: cancha.id }, estado: 'CONFIRMADA' },
+        where: { cancha: { id: cancha.id }, estado: EstadoReserva.CONFIRMADA },
       });
       const horarios = this.generarFranjas(cancha, reservasDeHoy);
       canchasConHorarios.push(Object.assign(cancha, { horarios }));

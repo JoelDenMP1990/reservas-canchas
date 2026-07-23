@@ -5,6 +5,7 @@ import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
 import { Horario } from './horario';
+import { EstadoReserva } from './estado-reserva.enum';
 
 // Reserva: uso de una cancha por un cliente en un horario determinado.
 @Entity('reservas')
@@ -12,8 +13,8 @@ export class Reserva {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: 'PENDIENTE' })
-  estado: string;
+  @Column({ type: 'enum', enum: EstadoReserva, default: EstadoReserva.PENDIENTE })
+  estado: EstadoReserva;
 
   @Column('timestamp')
   horaInicio: Date;
@@ -41,12 +42,12 @@ export class Reserva {
 
   // confirmar(): la reserva pasa a confirmada, normalmente tras registrar el pago.
   confirmar(): void {
-    this.estado = 'CONFIRMADA';
+    this.estado = EstadoReserva.CONFIRMADA;
   }
 
   // cancelar(): libera la reserva; exige al menos 2 horas de anticipación al inicio.
   cancelar(): void {
-    if (this.estado === 'CANCELADA') {
+    if (this.estado === EstadoReserva.CANCELADA) {
       throw new BadRequestException('La reserva ya está cancelada');
     }
     const minutosParaInicio = (this.horaInicio.getTime() - Date.now()) / (1000 * 60);
@@ -56,7 +57,7 @@ export class Reserva {
     if (minutosParaInicio < 120) {
       throw new BadRequestException('Solo se puede cancelar una reserva con al menos 2 horas de anticipación');
     }
-    this.estado = 'CANCELADA';
+    this.estado = EstadoReserva.CANCELADA;
   }
 
   // calcularPrecio(): horas reservadas por la tarifa base de la cancha.

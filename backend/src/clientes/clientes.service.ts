@@ -5,6 +5,7 @@ import { Cliente } from './cliente.entity';
 import { CrearClienteDto } from './dto/crear-cliente.dto';
 import { EditarClienteDto } from './dto/editar-cliente.dto';
 import { Reserva } from '../reservas/reserva.entity';
+import { EstadoReserva } from '../reservas/estado-reserva.enum';
 
 @Injectable()
 export class ClientesService {
@@ -46,7 +47,7 @@ export class ClientesService {
   // getReservasActivas(): reservas del cliente que todavía no están canceladas.
   getReservasActivas(clienteId: string): Promise<Reserva[]> {
     return this.reservasRepository.find({
-      where: { cliente: { id: clienteId }, estado: Not('CANCELADA') },
+      where: { cliente: { id: clienteId }, estado: Not(EstadoReserva.CANCELADA) },
       relations: ['cancha'],
     });
   }
