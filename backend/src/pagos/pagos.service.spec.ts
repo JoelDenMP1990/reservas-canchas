@@ -9,7 +9,7 @@ import { MetodoPago } from './metodo-pago.enum';
 describe('PagosService', () => {
   let service: PagosService;
 
-  let pagosRepository = {
+  const pagosRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
@@ -17,7 +17,7 @@ describe('PagosService', () => {
     remove: jest.fn(),
   };
 
-  let reservasRepository = {
+  const reservasRepository = {
     findOneBy: jest.fn(),
     save: jest.fn(),
   };
@@ -44,7 +44,9 @@ describe('PagosService', () => {
 
   it('debe listar los pagos', async () => {
     pagosRepository.find.mockResolvedValue([]);
-    expect(await service.listar()).toEqual([]);
+
+    await expect(service.listar()).resolves.toEqual([]);
+    expect(pagosRepository.find).toHaveBeenCalledWith({ relations: ['reserva'] });
   });
 
   it('debe lanzar error si no encuentra un pago', async () => {
