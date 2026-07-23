@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Reserva, ReservasService } from './reservas.service';
 import { Cliente, ClientesService } from '../clientes/clientes.service';
 import { Cancha, CanchasService } from '../canchas/canchas.service';
+import { SesionService } from '../sesion/sesion.service';
 
 // Pantalla de Reserva: crear (CU-02), confirmar, cancelar (CU-03).
 @Component({
@@ -13,14 +14,23 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
   template: `
     <div class="contenedor-principal">
     <div class="contenido-ancho">
+    <p class="descripcion-rol">
+      {{ esAdministrador
+        ? 'Como administrador puedes ver y confirmar/cancelar las reservas de todos los clientes.'
+        : 'Reserva tu cancha, revisa tus reservas y cancélalas hasta 2 horas antes del horario.' }}
+    </p>
     <div class="tarjeta animate-fade-in">
       <h2>Nueva reserva</h2>
       <form (ngSubmit)="guardar()">
-        <label>
+        <label *ngIf="esAdministrador">
           Cliente
           <select name="clienteId" [(ngModel)]="formulario.clienteId" required>
             <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
           </select>
+        </label>
+        <label *ngIf="!esAdministrador">
+          Cliente
+          <input type="text" [value]="nombreClienteActual" disabled />
         </label>
         <label>
           Cancha
@@ -56,26 +66,7 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
     </div>
 
     <div class="tarjeta animate-fade-in">
-      <h2>Lista de reservas</h2>
-      <div class="filtro-cliente">
-        <label>
-          Cliente actual
-          <select name="clienteActualId" [(ngModel)]="clienteActualId" (change)="aplicarFiltro()">
-            <option value="">-- Selecciona tu cliente --</option>
-            <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
-          </select>
-        </label>
-        <label class="checkbox">
-          <input
-            type="checkbox"
-            name="verSoloMisReservas"
-            [(ngModel)]="verSoloMisReservas"
-            [disabled]="!clienteActualId"
-            (change)="aplicarFiltro()"
-          />
-          Mostrar solo mis reservas
-        </label>
-      </div>
+      <h2>{{ esAdministrador ? 'Lista de reservas' : 'Mis reservas' }}</h2>
       <ul>
         <li *ngFor="let r of reservas">
           <div>
@@ -232,32 +223,10 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
       background-color: #b45309;
     }
 
-    .filtro-cliente {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1.2rem;
-      margin: 1rem 0 1.2rem;
-      padding: 0.8rem;
-      background: #f0fdf4;
-      border-radius: 8px;
-      border: 1px solid #bbf7d0;
-    }
-
-    .filtro-cliente label {
-      margin: 0;
-    }
-
-    .filtro-cliente label.checkbox {
-      flex-direction: row;
-      align-items: center;
-      gap: 0.5rem;
-      color: #166534;
-    }
-
-    .filtro-cliente select {
-      width: auto;
-      min-width: 200px;
+    .descripcion-rol {
+      color: #f0fdf4;
+      font-weight: 500;
+      margin: 0 0 1rem;
     }
 
     .etiqueta-estado {
@@ -283,8 +252,6 @@ import { Cancha, CanchasService } from '../canchas/canchas.service';
 export class ReservasComponent implements OnInit {
   reservas: Reserva[] = [];
   private todasReservas: Reserva[] = [];
-  clienteActualId = '';
-  verSoloMisReservas = false;
   clientes: Cliente[] = [];
   canchas: Cancha[] = [];
   formulario = {
@@ -302,9 +269,19 @@ export class ReservasComponent implements OnInit {
     private readonly reservasService: ReservasService,
     private readonly clientesService: ClientesService,
     private readonly canchasService: CanchasService,
+    private readonly sesionService: SesionService,
   ) {}
 
+  get esAdministrador(): boolean {
+    return this.sesionService.obtener()?.rol === 'ADMINISTRADOR';
+  }
+
+  get nombreClienteActual(): string {
+    return this.sesionService.obtener()?.clienteNombre ?? '';
+  }
+
   ngOnInit(): void {
+    this.reiniciarFormulario();
     this.refrescar();
     this.clientesService.listar().subscribe((clientes) => (this.clientes = clientes));
     this.canchasService.listar().subscribe((canchas) => (this.canchas = canchas));
@@ -317,11 +294,12 @@ export class ReservasComponent implements OnInit {
     });
   }
 
-  // aplicarFiltro(): CU "verificar mi reserva" — sin login, el cliente se identifica
-  // eligiéndose a sí mismo en "Cliente actual" para ver solo sus propias reservas.
-  aplicarFiltro(): void {
-    if (this.verSoloMisReservas && this.clienteActualId) {
-      this.reservas = this.todasReservas.filter((r) => r.cliente?.id === this.clienteActualId);
+  // aplicarFiltro(): CU "verificar mi reserva" — sin login, el cliente se identifica al
+  // entrar al sistema (pantalla de inicio), así que aquí solo se filtra por esa identidad.
+  private aplicarFiltro(): void {
+    const sesion = this.sesionService.obtener();
+    if (sesion?.rol === 'CLIENTE' && sesion.clienteId) {
+      this.reservas = this.todasReservas.filter((r) => r.cliente?.id === sesion.clienteId);
     } else {
       this.reservas = this.todasReservas;
     }
@@ -334,7 +312,7 @@ export class ReservasComponent implements OnInit {
       next: () => {
         this.mensaje = 'Reserva creada.';
         this.mensajeTipo = 'mensaje-exito';
-        this.formulario = { clienteId: '', canchaId: '', horaInicio: '', horaFin: '', metodoPago: 'EFECTIVO' };
+        this.reiniciarFormulario();
         this.refrescar();
       },
       error: (err: any) => {
@@ -342,6 +320,17 @@ export class ReservasComponent implements OnInit {
         this.mensajeTipo = 'mensaje-error';
       },
     });
+  }
+
+  private reiniciarFormulario(): void {
+    const sesion = this.sesionService.obtener();
+    this.formulario = {
+      clienteId: sesion?.rol === 'CLIENTE' ? (sesion.clienteId ?? '') : '',
+      canchaId: '',
+      horaInicio: '',
+      horaFin: '',
+      metodoPago: 'EFECTIVO',
+    };
   }
 
   private static formatearFechaLocal(fecha: Date): string {

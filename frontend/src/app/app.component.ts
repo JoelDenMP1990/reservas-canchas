@@ -1,57 +1,77 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { InicioComponent } from './inicio/inicio.component';
+import { SesionService } from './sesion/sesion.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, InicioComponent],
   template: `
-    <header class="app-header">
-      <div class="header-container">
-        <!-- Logo y Título -->
-        <div class="brand-wrapper">
-          <span class="logo-badge">⚽</span>
-          <h1 class="app-title">Sistema de Reservas de Canchas Deportivas</h1>
+    <ng-container *ngIf="sesionService.sesion$ | async as sesion; else inicio">
+      <header class="app-header">
+        <div class="header-container">
+          <!-- Logo y Título -->
+          <div class="brand-wrapper">
+            <span class="logo-badge">⚽</span>
+            <h1 class="app-title">Sistema de Reservas de Canchas Deportivas</h1>
+          </div>
+
+          <!-- Menú de Navegación Organizado -->
+          <nav class="app-nav">
+            <div class="nav-group">
+              <a routerLink="/canchas" routerLinkActive="activo">
+                <span class="nav-icon">🏟️</span> Canchas
+              </a>
+              <a routerLink="/reservas" routerLinkActive="activo">
+                <span class="nav-icon">📅</span> Reservas
+              </a>
+            </div>
+
+            <ng-container *ngIf="sesion.rol === 'ADMINISTRADOR'">
+              <div class="nav-divider"></div>
+
+              <div class="nav-group">
+                <a routerLink="/clientes" routerLinkActive="activo">
+                  <span class="nav-icon">👥</span> Clientes
+                </a>
+                <a routerLink="/administradores" routerLinkActive="activo">
+                  <span class="nav-icon">🛡️</span> Administradores
+                </a>
+              </div>
+
+              <div class="nav-divider"></div>
+
+              <div class="nav-group">
+                <a routerLink="/pagos" routerLinkActive="activo">
+                  <span class="nav-icon">💳</span> Pagos
+                </a>
+                <a routerLink="/notificaciones" routerLinkActive="activo">
+                  <span class="nav-icon">🔔</span> Notificaciones
+                </a>
+              </div>
+            </ng-container>
+
+            <div class="nav-divider"></div>
+
+            <div class="nav-group">
+              <span class="sesion-actual">
+                {{ sesion.rol === 'ADMINISTRADOR' ? '🛡️ Administrador' : '🙋 ' + sesion.clienteNombre }}
+              </span>
+              <button type="button" class="btn-salir" (click)="salir()">Salir</button>
+            </div>
+          </nav>
         </div>
+      </header>
+      <main class="app-main">
+        <router-outlet></router-outlet>
+      </main>
+    </ng-container>
 
-        <!-- Menú de Navegación Organizado -->
-        <nav class="app-nav">
-          <div class="nav-group">
-            <a routerLink="/canchas" routerLinkActive="activo">
-              <span class="nav-icon">🏟️</span> Canchas
-            </a>
-            <a routerLink="/reservas" routerLinkActive="activo">
-              <span class="nav-icon">📅</span> Reservas
-            </a>
-          </div>
-
-          <div class="nav-divider"></div>
-
-          <div class="nav-group">
-            <a routerLink="/clientes" routerLinkActive="activo">
-              <span class="nav-icon">👥</span> Clientes
-            </a>
-            <a routerLink="/administradores" routerLinkActive="activo">
-              <span class="nav-icon">🛡️</span> Administradores
-            </a>
-          </div>
-
-          <div class="nav-divider"></div>
-
-          <div class="nav-group">
-            <a routerLink="/pagos" routerLinkActive="activo">
-              <span class="nav-icon">💳</span> Pagos
-            </a>
-            <a routerLink="/notificaciones" routerLinkActive="activo">
-              <span class="nav-icon">🔔</span> Notificaciones
-            </a>
-          </div>
-        </nav>
-      </div>
-    </header>
-    <main class="app-main">
-      <router-outlet></router-outlet>
-    </main>
+    <ng-template #inicio>
+      <app-inicio></app-inicio>
+    </ng-template>
   `,
   styles: [`
     .app-header {
@@ -122,6 +142,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     .nav-group {
       display: flex;
       gap: 0.3rem;
+      align-items: center;
     }
 
     .nav-divider {
@@ -169,6 +190,38 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     .nav-icon {
       font-size: 0.85rem;
     }
+
+    .sesion-actual {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0 0.4rem;
+    }
+
+    .btn-salir {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-salir:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
   `]
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor(
+    readonly sesionService: SesionService,
+    private readonly router: Router,
+  ) {}
+
+  salir(): void {
+    this.sesionService.salir();
+    this.router.navigateByUrl('/');
+  }
+}

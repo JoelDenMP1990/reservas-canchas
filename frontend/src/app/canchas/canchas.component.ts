@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Cancha, CanchasService } from './canchas.service';
 import { Administrador, AdministradoresService } from '../administradores/administradores.service';
+import { ReservasService } from '../reservas/reservas.service';
+import { SesionService } from '../sesion/sesion.service';
 
 @Component({
   selector: 'app-canchas',
@@ -11,17 +13,23 @@ import { Administrador, AdministradoresService } from '../administradores/admini
   template: `
     <div class="contenedor-principal">
       <div class="contenido-ancho">
+        <p class="descripcion-rol">
+          {{ esAdministrador
+            ? 'Gestión de canchas: registra canchas nuevas, edítalas o desactívalas.'
+            : 'Reserva de canchas: consulta disponibilidad antes de reservar.' }}
+        </p>
+
         <div class="canchas-layout">
 
-          <!-- Panel Izquierdo: Formulario -->
-          <div class="tarjeta animate-fade-in form-container">
+          <!-- Panel Izquierdo: Formulario (solo Administrador) -->
+          <div class="tarjeta animate-fade-in form-container" *ngIf="esAdministrador">
             <div class="tarjeta-header">
               <h2>
-                <span class="icono">🏟️</span> 
+                <span class="icono">🏟️</span>
                 {{ editandoId ? 'Editar Cancha' : 'Nueva Cancha' }}
               </h2>
             </div>
-            
+
             <form (ngSubmit)="guardar()" class="formulario">
               <div class="form-group">
                 <label>Nombre de la cancha</label>
@@ -81,6 +89,46 @@ import { Administrador, AdministradoresService } from '../administradores/admini
             </div>
           </div>
 
+          <!-- Panel Izquierdo: Consultar disponibilidad (solo Cliente) -->
+          <div class="tarjeta animate-fade-in form-container" *ngIf="!esAdministrador">
+            <div class="tarjeta-header">
+              <h2>
+                <span class="icono">🔎</span> Consultar disponibilidad
+              </h2>
+            </div>
+
+            <form (ngSubmit)="consultarDisponibilidad()" class="formulario">
+              <div class="form-group">
+                <label>Cancha</label>
+                <select name="canchaConsultaId" [(ngModel)]="consulta.canchaId" required>
+                  <option value="" disabled selected>Seleccione una cancha</option>
+                  <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group half">
+                  <label>Hora inicio</label>
+                  <input type="datetime-local" name="horaInicioConsulta" [(ngModel)]="consulta.horaInicio" required />
+                </div>
+                <div class="form-group half">
+                  <label>Hora fin</label>
+                  <input type="datetime-local" name="horaFinConsulta" [(ngModel)]="consulta.horaFin" required />
+                </div>
+              </div>
+              <div class="acciones-formulario">
+                <button type="submit" class="btn btn-primary">🔎 Consultar</button>
+              </div>
+            </form>
+
+            <div
+              *ngIf="resultadoDisponibilidad !== null"
+              class="alerta"
+              [ngClass]="resultadoDisponibilidad ? 'alerta-exito' : 'alerta-error'"
+            >
+              {{ resultadoDisponibilidad ? '✅ La cancha está disponible en ese horario.' : '❌ La cancha no está disponible en ese horario.' }}
+            </div>
+          </div>
+
           <!-- Panel Derecho: Lista de Canchas -->
           <div class="tarjeta animate-fade-in lista-container">
             <div class="tarjeta-header">
@@ -105,7 +153,7 @@ import { Administrador, AdministradoresService } from '../administradores/admini
                     <strong>Admin:</strong> {{ c.administrador?.nombre }}
                   </p>
                 </div>
-                <div class="cancha-acciones">
+                <div class="cancha-acciones" *ngIf="esAdministrador">
                   <button type="button" class="btn-icon btn-edit" (click)="editar(c)" title="Editar">✏️</button>
                   <button type="button" class="btn-icon btn-delete" (click)="eliminar(c.id)" title="Borrar">🗑️</button>
                 </div>
@@ -123,6 +171,14 @@ import { Administrador, AdministradoresService } from '../administradores/admini
   `,
 
   styles: [`
+    .descripcion-rol {
+      max-width: 1100px;
+      margin: 0 auto 1rem;
+      padding: 0 20px;
+      color: #f0fdf4;
+      font-weight: 500;
+    }
+
     .canchas-layout {
       display: grid;
       grid-template-columns: 1.5fr 1fr;
@@ -405,14 +461,30 @@ export class CanchasComponent implements OnInit {
   mensaje = '';
   mensajeTipo = '';
 
+  consulta = { canchaId: '', horaInicio: '', horaFin: '' };
+  resultadoDisponibilidad: boolean | null = null;
+
   constructor(
     private readonly canchasService: CanchasService,
     private readonly administradoresService: AdministradoresService,
+    private readonly reservasService: ReservasService,
+    private readonly sesionService: SesionService,
   ) {}
+
+  get esAdministrador(): boolean {
+    return this.sesionService.obtener()?.rol === 'ADMINISTRADOR';
+  }
 
   ngOnInit(): void {
     this.refrescar();
     this.administradoresService.listar().subscribe((administradores) => (this.administradores = administradores));
+  }
+
+  consultarDisponibilidad(): void {
+    const { canchaId, horaInicio, horaFin } = this.consulta;
+    this.reservasService
+      .consultarDisponibilidad(canchaId, horaInicio, horaFin)
+      .subscribe((respuesta) => (this.resultadoDisponibilidad = respuesta.disponible));
   }
 
   refrescar(): void {

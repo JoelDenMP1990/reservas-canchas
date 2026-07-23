@@ -61,5 +61,12 @@ export class ReservasService {
   cancelar(id: string): Observable<Reserva> {
     return this.http.post<Reserva>(`${this.apiUrl}/${id}/cancelar`, {});
   }
+
+  // consultarDisponibilidad(): CU-01 — informa si una cancha está libre en un horario dado.
+  consultarDisponibilidad(canchaId: string, horaInicio: string, horaFin: string): Observable<{ disponible: boolean }> {
+    return this.http.get<{ disponible: boolean }>(`${this.apiUrl}/disponibilidad`, {
+      params: { canchaId, horaInicio, horaFin },
+    });
+  }
 }
 // Servicio actualizado para la gestión de reservas
