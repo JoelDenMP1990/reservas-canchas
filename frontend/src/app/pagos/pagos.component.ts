@@ -41,11 +41,12 @@ import { Reserva, ReservasService } from '../reservas/reservas.service';
 
           <div class="campo">
             <label>Método de pago</label>
-            <input
-              name="metodoPago"
-              [(ngModel)]="formulario.metodoPago"
-              required
-            />
+            <select name="metodoPago" [(ngModel)]="formulario.metodoPago" required>
+              <option value="" disabled>Seleccione un método</option>
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="TARJETA">Tarjeta</option>
+              <option value="TRANSFERENCIA">Transferencia</option>
+            </select>
           </div>
 
           <button class="btn-guardar" type="submit">
@@ -126,7 +127,11 @@ import { Reserva, ReservasService } from '../reservas/reservas.service';
 export class PagosComponent implements OnInit {
   pagos: Pago[] = [];
   reservasPendientes: Reserva[] = [];
-  formulario: { reservaId: string; monto: number; metodoPago: string } = {
+  formulario: {
+    reservaId: string;
+    monto: number;
+    metodoPago: '' | 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+  } = {
     reservaId: '',
     monto: 0,
     metodoPago: '',
@@ -166,6 +171,16 @@ export class PagosComponent implements OnInit {
   }
 
   eliminar(id: string): void {
-    this.pagosService.eliminar(id).subscribe(() => this.refrescar());
+    this.pagosService.eliminar(id).subscribe({
+      next: () => {
+        this.mensaje = 'Pago eliminado correctamente.';
+        this.mensajeTipo = 'mensaje exito';
+        this.refrescar();
+      },
+      error: (error) => {
+        this.mensaje = error.error?.message ?? 'No se pudo eliminar el pago.';
+        this.mensajeTipo = 'mensaje error';
+      },
+    });
   }
 }
