@@ -4,8 +4,8 @@ import { LessThan, MoreThan, Repository } from 'typeorm';
 import { Reserva } from './reserva.entity';
 import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
-import { Pago } from '../pagos/pago.entity';
-import { Notificacion } from '../notificaciones/notificacion.entity';
+import { PagosService } from '../pagos/pagos.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
 import { MetodoPago } from '../pagos/metodo-pago.enum';
 import { EstadoReserva } from './estado-reserva.enum';
@@ -19,10 +19,8 @@ export class ReservasService {
     private readonly clientesRepository: Repository<Cliente>,
     @InjectRepository(Cancha)
     private readonly canchasRepository: Repository<Cancha>,
-    @InjectRepository(Pago)
-    private readonly pagosRepository: Repository<Pago>,
-    @InjectRepository(Notificacion)
-    private readonly notificacionesRepository: Repository<Notificacion>,
+    private readonly pagosService: PagosService,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
 
   listar(): Promise<Reserva[]> {
@@ -112,26 +110,36 @@ export class ReservasService {
   private async confirmarSinPago(reserva: Reserva): Promise<Reserva> {
     reserva.confirmar();
     await this.reservasRepository.save(reserva);
-    await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada (cancha gratuita).');
+    await this.notificacionesService.crear({
+      reservaId: reserva.id,
+      tipo: 'CONFIRMACION',
+      mensaje: 'Tu reserva fue confirmada (cancha gratuita).',
+    });
     return reserva;
   }
 
-  // confirmarProcesandoPago(): cancha de pago — procesa el Pago y confirma la reserva solo si fue aprobado.
+  // confirmarProcesandoPago(): cancha de pago — delega en PagosService, que procesa el pago y
+  // confirma la reserva solo si fue aprobado.
   private async confirmarProcesandoPago(reserva: Reserva, metodoPago?: MetodoPago): Promise<Reserva> {
-    const pago = this.pagosRepository.create({
-      reserva,
+    const pago = await this.pagosService.crear({
+      reservaId: reserva.id,
       monto: reserva.monto,
       metodoPago: metodoPago ?? MetodoPago.EFECTIVO,
     });
-    const aprobado = pago.procesar();
-    await this.pagosRepository.save(pago);
 
-    if (aprobado) {
+    if (pago.procesadoEn) {
       reserva.confirmar();
-      await this.reservasRepository.save(reserva);
-      await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada y el pago fue aprobado.');
+      await this.notificacionesService.crear({
+        reservaId: reserva.id,
+        tipo: 'CONFIRMACION',
+        mensaje: 'Tu reserva fue confirmada y el pago fue aprobado.',
+      });
     } else {
-      await this.notificar(reserva, 'PAGO_RECHAZADO', 'No se pudo procesar el pago de tu reserva.');
+      await this.notificacionesService.crear({
+        reservaId: reserva.id,
+        tipo: 'PAGO_RECHAZADO',
+        mensaje: 'No se pudo procesar el pago de tu reserva.',
+      });
     }
 
     return reserva;
@@ -148,7 +156,11 @@ export class ReservasService {
     const reserva = await this.obtenerPorId(id);
     reserva.cancelar();
     const reservaGuardada = await this.reservasRepository.save(reserva);
-    await this.notificar(reservaGuardada, 'CANCELACION', 'Tu reserva fue cancelada.');
+    await this.notificacionesService.crear({
+      reservaId: reservaGuardada.id,
+      tipo: 'CANCELACION',
+      mensaje: 'Tu reserva fue cancelada.',
+    });
     return reservaGuardada;
   }
 
@@ -177,11 +189,5 @@ export class ReservasService {
       },
     });
     return !!conflicto;
-  }
-
-  private async notificar(reserva: Reserva, tipo: string, mensaje: string): Promise<void> {
-    const notificacion = this.notificacionesRepository.create({ reserva, tipo, mensaje });
-    notificacion.enviar();
-    await this.notificacionesRepository.save(notificacion);
   }
 }
