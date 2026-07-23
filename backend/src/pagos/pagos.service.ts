@@ -37,10 +37,12 @@ export class PagosService {
       throw new BadRequestException('Esta reserva ya tiene un pago registrado');
     }
     const pago = this.pagosRepository.create({ reserva, monto: dto.monto, metodoPago: dto.metodoPago });
-    pago.procesar();
+    const aprobado = pago.procesar();
     const pagoGuardado = await this.pagosRepository.save(pago);
-    reserva.confirmar();
-    await this.reservasRepository.save(reserva);
+    if (aprobado) {
+      reserva.confirmar();
+      await this.reservasRepository.save(reserva);
+    }
     return pagoGuardado;
   }
 
