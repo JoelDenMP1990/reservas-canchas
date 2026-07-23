@@ -9,6 +9,6 @@ import { PagosController } from './pagos.controller';
   imports: [TypeOrmModule.forFeature([Pago, Reserva])],
   controllers: [PagosController],
   providers: [PagosService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, PagosService],
 })
 export class PagosModule {}

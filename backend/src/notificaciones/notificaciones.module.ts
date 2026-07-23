@@ -9,6 +9,6 @@ import { NotificacionesController } from './notificaciones.controller';
   imports: [TypeOrmModule.forFeature([Notificacion, Reserva])],
   controllers: [NotificacionesController],
   providers: [NotificacionesService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, NotificacionesService],
 })
 export class NotificacionesModule {}

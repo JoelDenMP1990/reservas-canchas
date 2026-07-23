@@ -7,6 +7,8 @@ import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
+import { PagosService } from '../pagos/pagos.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { MetodoPago } from '../pagos/metodo-pago.enum';
 
 describe('ReservasService', () => {
@@ -14,8 +16,8 @@ describe('ReservasService', () => {
   let clientesRepositorio: { findOneBy: jest.Mock };
   let canchasRepositorio: { findOneBy: jest.Mock };
   let reservasRepositorio: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock };
-  let pagosRepositorio: { create: jest.Mock; save: jest.Mock };
-  let notificacionesRepositorio: { create: jest.Mock; save: jest.Mock };
+  let pagosServicio: { crear: jest.Mock };
+  let notificacionesServicio: { crear: jest.Mock };
 
   beforeEach(async () => {
     clientesRepositorio = { findOneBy: jest.fn() };
@@ -25,13 +27,11 @@ describe('ReservasService', () => {
       save: jest.fn((reserva) => Promise.resolve(reserva)),
       findOne: jest.fn(),
     };
-    pagosRepositorio = {
-      create: jest.fn((datos) => Object.assign(new Pago(), datos)),
-      save: jest.fn((pago) => Promise.resolve(pago)),
+    pagosServicio = {
+      crear: jest.fn((datos) => Promise.resolve(Object.assign(new Pago(), datos, { procesadoEn: new Date() }))),
     };
-    notificacionesRepositorio = {
-      create: jest.fn((datos) => Object.assign(new Notificacion(), datos)),
-      save: jest.fn((notificacion) => Promise.resolve(notificacion)),
+    notificacionesServicio = {
+      crear: jest.fn((datos) => Promise.resolve(Object.assign(new Notificacion(), datos, { enviadaEn: new Date() }))),
     };
 
     const moduleRef = await Test.createTestingModule({
@@ -40,8 +40,8 @@ describe('ReservasService', () => {
         { provide: getRepositoryToken(Reserva), useValue: reservasRepositorio },
         { provide: getRepositoryToken(Cliente), useValue: clientesRepositorio },
         { provide: getRepositoryToken(Cancha), useValue: canchasRepositorio },
-        { provide: getRepositoryToken(Pago), useValue: pagosRepositorio },
-        { provide: getRepositoryToken(Notificacion), useValue: notificacionesRepositorio },
+        { provide: PagosService, useValue: pagosServicio },
+        { provide: NotificacionesService, useValue: notificacionesServicio },
       ],
     }).compile();
 
@@ -64,10 +64,31 @@ describe('ReservasService', () => {
 
     expect(reserva.monto).toBe(20);
     expect(reserva.estado).toBe('CONFIRMADA');
-    expect(pagosRepositorio.save).toHaveBeenCalledTimes(1);
-    expect(notificacionesRepositorio.save).toHaveBeenCalledTimes(1);
-    expect(notificacionesRepositorio.create).toHaveBeenCalledWith(
+    expect(pagosServicio.crear).toHaveBeenCalledTimes(1);
+    expect(notificacionesServicio.crear).toHaveBeenCalledTimes(1);
+    expect(notificacionesServicio.crear).toHaveBeenCalledWith(
       expect.objectContaining({ tipo: 'CONFIRMACION' }),
+    );
+  });
+
+  it('deja la reserva pendiente y notifica el rechazo si el pago no fue aprobado', async () => {
+    const cliente = Object.assign(new Cliente(), { id: 'cliente-1' });
+    const cancha = Object.assign(new Cancha(), { id: 'cancha-1', activa: true, tarifaBasePorHora: 10 });
+    clientesRepositorio.findOneBy.mockResolvedValue(cliente);
+    canchasRepositorio.findOneBy.mockResolvedValue(cancha);
+    pagosServicio.crear.mockResolvedValue(Object.assign(new Pago(), { procesadoEn: undefined }));
+
+    const reserva = await service.crear({
+      clienteId: 'cliente-1',
+      canchaId: 'cancha-1',
+      horaInicio: '2026-08-01T10:00:00',
+      horaFin: '2026-08-01T12:00:00',
+      metodoPago: MetodoPago.EFECTIVO,
+    });
+
+    expect(reserva.estado).toBe('PENDIENTE');
+    expect(notificacionesServicio.crear).toHaveBeenCalledWith(
+      expect.objectContaining({ tipo: 'PAGO_RECHAZADO' }),
     );
   });
 
@@ -85,8 +106,8 @@ describe('ReservasService', () => {
     });
 
     expect(reserva.estado).toBe('CONFIRMADA');
-    expect(pagosRepositorio.create).not.toHaveBeenCalled();
-    expect(notificacionesRepositorio.save).toHaveBeenCalledTimes(1);
+    expect(pagosServicio.crear).not.toHaveBeenCalled();
+    expect(notificacionesServicio.crear).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -168,7 +189,7 @@ describe('ReservasService', () => {
     const resultado = await service.cancelar('reserva-1');
 
     expect(resultado.estado).toBe('CANCELADA');
-    expect(notificacionesRepositorio.create).toHaveBeenCalledWith(
+    expect(notificacionesServicio.crear).toHaveBeenCalledWith(
       expect.objectContaining({ tipo: 'CANCELACION' }),
     );
   });
@@ -182,7 +203,7 @@ describe('ReservasService', () => {
     reservasRepositorio.findOne.mockResolvedValue(reserva);
 
     await expect(service.cancelar('reserva-1')).rejects.toBeInstanceOf(BadRequestException);
-    expect(notificacionesRepositorio.save).not.toHaveBeenCalled();
+    expect(notificacionesServicio.crear).not.toHaveBeenCalled();
   });
 
 });
