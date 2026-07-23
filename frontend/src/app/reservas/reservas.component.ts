@@ -38,7 +38,7 @@ import { SesionService } from '../sesion/sesion.service';
             <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
           </select>
         </label>
-        <label>
+        <label *ngIf="!canchaSeleccionadaEsGratuita">
           Método de pago
           <select name="metodoPago" [(ngModel)]="formulario.metodoPago" required>
             <option value="EFECTIVO">Efectivo</option>
@@ -46,6 +46,9 @@ import { SesionService } from '../sesion/sesion.service';
             <option value="TRANSFERENCIA">Transferencia</option>
           </select>
         </label>
+        <p *ngIf="canchaSeleccionadaEsGratuita" class="aviso-gratuita">
+          🎉 Esta cancha es gratuita — no se requiere pago.
+        </p>
         <label>
           Hora inicio
           <input
@@ -229,6 +232,16 @@ import { SesionService } from '../sesion/sesion.service';
       margin: 0 0 1rem;
     }
 
+    .aviso-gratuita {
+      grid-column: 1 / -1;
+      background-color: #d1fae5;
+      color: #065f46;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      margin: 0;
+    }
+
     .etiqueta-estado {
       font-size: 0.8rem;
       font-weight: 600;
@@ -278,6 +291,13 @@ export class ReservasComponent implements OnInit {
 
   get nombreClienteActual(): string {
     return this.sesionService.obtener()?.clienteNombre ?? '';
+  }
+
+  // canchaSeleccionadaEsGratuita(): misma regla que Cancha.esGratuita() en el backend
+  // (tarifaBasePorHora === 0), para no mostrarle método de pago a algo que no se cobra.
+  get canchaSeleccionadaEsGratuita(): boolean {
+    const cancha = this.canchas.find((c) => c.id === this.formulario.canchaId);
+    return cancha != null && Number(cancha.tarifaBasePorHora) === 0;
   }
 
   ngOnInit(): void {
