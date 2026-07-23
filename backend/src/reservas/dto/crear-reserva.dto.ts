@@ -1,4 +1,5 @@
-import { IsDateString, IsIn, IsOptional, IsUUID } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { MetodoPago } from '../../pagos/metodo-pago.enum';
 
 export class CrearReservaDto {
   @IsUUID()
@@ -15,6 +16,6 @@ export class CrearReservaDto {
 
   // metodoPago: solo se usa cuando la cancha no es gratuita (por defecto EFECTIVO).
   @IsOptional()
-  @IsIn(['TARJETA', 'EFECTIVO', 'TRANSFERENCIA'])
-  metodoPago?: string;
+  @IsEnum(MetodoPago)
+  metodoPago?: MetodoPago;
 }

@@ -4,6 +4,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { PagosService } from './pagos.service';
 import { Pago } from './pago.entity';
 import { Reserva } from '../reservas/reserva.entity';
+import { MetodoPago } from './metodo-pago.enum';
 
 describe('PagosService', () => {
   let service: PagosService;
@@ -71,7 +72,7 @@ describe('PagosService', () => {
       service.crear({
         reservaId: '1',
         monto: 20,
-        metodoPago: 'Efectivo',
+        metodoPago: MetodoPago.EFECTIVO,
       }),
     ).rejects.toThrow(NotFoundException);
   });
@@ -85,7 +86,7 @@ describe('PagosService', () => {
       service.crear({
         reservaId: '1',
         monto: 20,
-        metodoPago: 'Efectivo',
+        metodoPago: MetodoPago.EFECTIVO,
       }),
     ).rejects.toThrow(BadRequestException);
   });

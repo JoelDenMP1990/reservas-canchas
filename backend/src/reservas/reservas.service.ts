@@ -7,6 +7,7 @@ import { Cancha } from '../canchas/cancha.entity';
 import { Pago } from '../pagos/pago.entity';
 import { Notificacion } from '../notificaciones/notificacion.entity';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
+import { MetodoPago } from '../pagos/metodo-pago.enum';
 
 @Injectable()
 export class ReservasService {
@@ -98,7 +99,7 @@ export class ReservasService {
 
   // confirmarConPago(): omite el pago si la cancha es gratuita; si no, lo procesa y confirma
   // la reserva solo si fue aprobado. Siempre notifica al cliente el resultado.
-  private async confirmarConPago(reserva: Reserva, cancha: Cancha, metodoPago?: string): Promise<Reserva> {
+  private async confirmarConPago(reserva: Reserva, cancha: Cancha, metodoPago?: MetodoPago): Promise<Reserva> {
     if (cancha.esGratuita()) {
       reserva.confirmar();
       await this.reservasRepository.save(reserva);
@@ -109,7 +110,7 @@ export class ReservasService {
     const pago = this.pagosRepository.create({
       reserva,
       monto: reserva.monto,
-      metodoPago: metodoPago ?? 'EFECTIVO',
+      metodoPago: metodoPago ?? MetodoPago.EFECTIVO,
     });
     const aprobado = pago.procesar();
     await this.pagosRepository.save(pago);

@@ -5,6 +5,7 @@ import { Administrador } from './administradores/administrador.entity';
 import { Cancha } from './canchas/cancha.entity';
 import { Reserva } from './reservas/reserva.entity';
 import { Pago } from './pagos/pago.entity';
+import { MetodoPago } from './pagos/metodo-pago.enum';
 
 // Script de datos de prueba: llena la base con clientes, administradores, canchas,
 // reservas y pagos de ejemplo para que el equipo pueda probar el sistema.
@@ -87,7 +88,7 @@ async function seed() {
   reserva1.monto = reserva1.calcularPrecio();
   await reservaRepo.save(reserva1);
 
-  const pago1 = pagoRepo.create({ reserva: reserva1, monto: reserva1.monto, metodoPago: 'TARJETA' });
+  const pago1 = pagoRepo.create({ reserva: reserva1, monto: reserva1.monto, metodoPago: MetodoPago.TARJETA });
   pago1.procesar();
   await pagoRepo.save(pago1);
   reserva1.confirmar();

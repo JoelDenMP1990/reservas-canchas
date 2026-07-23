@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Reserva } from '../reservas/reserva.entity';
 import { obtenerEstrategiaPago } from './estrategias/obtener-estrategia-pago';
+import { MetodoPago } from './metodo-pago.enum';
 
 // Pago: cobro asociado a una reserva.
 @Entity('pagos')
@@ -11,8 +12,8 @@ export class Pago {
   @Column('decimal', { precision: 10, scale: 2 })
   monto: number;
 
-  @Column()
-  metodoPago: string;
+  @Column({ type: 'enum', enum: MetodoPago })
+  metodoPago: MetodoPago;
 
   @Column({ type: 'timestamp', nullable: true })
   procesadoEn: Date;

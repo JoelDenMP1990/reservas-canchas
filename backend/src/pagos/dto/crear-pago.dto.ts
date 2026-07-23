@@ -1,4 +1,5 @@
-import { IsNumber, IsString, IsUUID, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsUUID, Min } from 'class-validator';
+import { MetodoPago } from '../metodo-pago.enum';
 
 export class CrearPagoDto {
   @IsUUID()
@@ -8,6 +9,8 @@ export class CrearPagoDto {
   @Min(0)
   monto: number;
 
-  @IsString()
-  metodoPago: string;
+  @IsEnum(MetodoPago, {
+    message: 'El método de pago debe ser TARJETA, EFECTIVO o TRANSFERENCIA',
+  })
+  metodoPago: MetodoPago;
 }
