@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { Reserva } from './reserva.entity';
 import { Cliente } from '../clientes/cliente.entity';
 import { Cancha } from '../canchas/cancha.entity';
+import { Pago } from '../pagos/pago.entity';
+import { Notificacion } from '../notificaciones/notificacion.entity';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
-import { EditarReservaDto } from './dto/editar-reserva.dto';
 
 @Injectable()
 export class ReservasService {
@@ -16,6 +17,10 @@ export class ReservasService {
     private readonly clientesRepository: Repository<Cliente>,
     @InjectRepository(Cancha)
     private readonly canchasRepository: Repository<Cancha>,
+    @InjectRepository(Pago)
+    private readonly pagosRepository: Repository<Pago>,
+    @InjectRepository(Notificacion)
+    private readonly notificacionesRepository: Repository<Notificacion>,
   ) {}
 
   listar(): Promise<Reserva[]> {
@@ -33,7 +38,19 @@ export class ReservasService {
     return reserva;
   }
 
+  // crear(): CU-02 — orquesta los 3 pasos en métodos privados (Extract Method, corrige el
+  // mal olor de método largo): validar cliente/cancha/horario, crear la reserva pendiente,
+  // y procesar el pago (o confirmarla directo si la cancha es gratuita).
   async crear(dto: CrearReservaDto): Promise<Reserva> {
+    const { cliente, cancha, horaInicio, horaFin } = await this.validarDatosDeReserva(dto);
+    const reserva = await this.crearReservaPendiente(cliente, cancha, horaInicio, horaFin);
+    return this.confirmarConPago(reserva, cancha, dto.metodoPago);
+  }
+
+  // validarDatosDeReserva(): busca cliente y cancha, y valida disponibilidad/horario/solapamiento.
+  private async validarDatosDeReserva(
+    dto: CrearReservaDto,
+  ): Promise<{ cliente: Cliente; cancha: Cancha; horaInicio: Date; horaFin: Date }> {
     const cliente = await this.clientesRepository.findOneBy({ id: dto.clienteId });
     if (!cliente) {
       throw new NotFoundException('Cliente no encontrado');
@@ -45,30 +62,67 @@ export class ReservasService {
     if (!cancha.estaDisponible()) {
       throw new BadRequestException('La cancha no está disponible');
     }
+
+    const horaInicio = new Date(dto.horaInicio);
+    const horaFin = new Date(dto.horaFin);
+    if (horaInicio < new Date()) {
+      throw new BadRequestException('No se puede reservar en una fecha u hora que ya pasó');
+    }
+    if (horaFin <= horaInicio) {
+      throw new BadRequestException('La hora de fin debe ser posterior a la hora de inicio');
+    }
+    if (await this.haySolapamiento(cancha.id, horaInicio, horaFin)) {
+      throw new BadRequestException('La cancha ya tiene una reserva confirmada en ese horario');
+    }
+
+    return { cliente, cancha, horaInicio, horaFin };
+  }
+
+  // crearReservaPendiente(): guarda la reserva en estado PENDIENTE con su precio calculado.
+  private async crearReservaPendiente(
+    cliente: Cliente,
+    cancha: Cancha,
+    horaInicio: Date,
+    horaFin: Date,
+  ): Promise<Reserva> {
     const reserva = this.reservasRepository.create({
       cliente,
       cancha,
-      horaInicio: new Date(dto.horaInicio),
-      horaFin: new Date(dto.horaFin),
+      horaInicio,
+      horaFin,
       estado: 'PENDIENTE',
     });
     reserva.monto = reserva.calcularPrecio();
     return this.reservasRepository.save(reserva);
   }
 
-  async editar(id: string, dto: EditarReservaDto): Promise<Reserva> {
-    const reserva = await this.obtenerPorId(id);
-    if (reserva.estado !== 'PENDIENTE') {
-      throw new BadRequestException('Solo se puede reprogramar una reserva pendiente');
+  // confirmarConPago(): omite el pago si la cancha es gratuita; si no, lo procesa y confirma
+  // la reserva solo si fue aprobado. Siempre notifica al cliente el resultado.
+  private async confirmarConPago(reserva: Reserva, cancha: Cancha, metodoPago?: string): Promise<Reserva> {
+    if (cancha.esGratuita()) {
+      reserva.confirmar();
+      await this.reservasRepository.save(reserva);
+      await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada (cancha gratuita).');
+      return reserva;
     }
-    if (dto.horaInicio) {
-      reserva.horaInicio = new Date(dto.horaInicio);
+
+    const pago = this.pagosRepository.create({
+      reserva,
+      monto: reserva.monto,
+      metodoPago: metodoPago ?? 'EFECTIVO',
+    });
+    const aprobado = pago.procesar();
+    await this.pagosRepository.save(pago);
+
+    if (aprobado) {
+      reserva.confirmar();
+      await this.reservasRepository.save(reserva);
+      await this.notificar(reserva, 'CONFIRMACION', 'Tu reserva fue confirmada y el pago fue aprobado.');
+    } else {
+      await this.notificar(reserva, 'PAGO_RECHAZADO', 'No se pudo procesar el pago de tu reserva.');
     }
-    if (dto.horaFin) {
-      reserva.horaFin = new Date(dto.horaFin);
-    }
-    reserva.monto = reserva.calcularPrecio();
-    return this.reservasRepository.save(reserva);
+
+    return reserva;
   }
 
   async confirmar(id: string): Promise<Reserva> {
@@ -77,14 +131,45 @@ export class ReservasService {
     return this.reservasRepository.save(reserva);
   }
 
+  // cancelar(): CU-03 — la propia Reserva valida la política de antelación; se notifica al cliente.
   async cancelar(id: string): Promise<Reserva> {
     const reserva = await this.obtenerPorId(id);
     reserva.cancelar();
-    return this.reservasRepository.save(reserva);
+    const reservaGuardada = await this.reservasRepository.save(reserva);
+    await this.notificar(reservaGuardada, 'CANCELACION', 'Tu reserva fue cancelada.');
+    return reservaGuardada;
   }
 
-  async eliminar(id: string): Promise<void> {
-    const reserva = await this.obtenerPorId(id);
-    await this.reservasRepository.remove(reserva);
+  // consultarDisponibilidad(): CU-01 — informa si una cancha está libre en un horario dado.
+  async consultarDisponibilidad(canchaId: string, horaInicioStr: string, horaFinStr: string): Promise<boolean> {
+    const cancha = await this.canchasRepository.findOneBy({ id: canchaId });
+    if (!cancha) {
+      throw new NotFoundException('Cancha no encontrada');
+    }
+    if (!cancha.estaDisponible()) {
+      return false;
+    }
+    const horaInicio = new Date(horaInicioStr);
+    const horaFin = new Date(horaFinStr);
+    return !(await this.haySolapamiento(canchaId, horaInicio, horaFin));
+  }
+
+  // haySolapamiento(): true si la cancha ya tiene una reserva CONFIRMADA que cruza ese horario.
+  private async haySolapamiento(canchaId: string, horaInicio: Date, horaFin: Date): Promise<boolean> {
+    const conflicto = await this.reservasRepository.findOne({
+      where: {
+        cancha: { id: canchaId },
+        estado: 'CONFIRMADA',
+        horaInicio: LessThan(horaFin),
+        horaFin: MoreThan(horaInicio),
+      },
+    });
+    return !!conflicto;
+  }
+
+  private async notificar(reserva: Reserva, tipo: string, mensaje: string): Promise<void> {
+    const notificacion = this.notificacionesRepository.create({ reserva, tipo, mensaje });
+    notificacion.enviar();
+    await this.notificacionesRepository.save(notificacion);
   }
 }
