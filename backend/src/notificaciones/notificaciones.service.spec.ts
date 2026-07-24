@@ -8,7 +8,7 @@ import { Reserva } from '../reservas/reserva.entity';
 describe('NotificacionesService', () => {
   let service: NotificacionesService;
 
-  let notificacionesRepository = {
+  const notificacionesRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
@@ -16,7 +16,7 @@ describe('NotificacionesService', () => {
     remove: jest.fn(),
   };
 
-  let reservasRepository = {
+  const reservasRepository = {
     findOneBy: jest.fn(),
   };
 
